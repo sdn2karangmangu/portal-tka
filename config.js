@@ -14,7 +14,7 @@
 
 const CONFIG = {
   // Masukkan URL Web App Google Apps Script Anda (yang berakhiran /exec) di sini:
-  DEFAULT_GAS_URL: "",
+  DEFAULT_GAS_URL: "https://script.google.com/macros/s/AKfycby7l9hAourwRsjxm5E06s8rOguZ2_pTr7oA3tq0WY47dTSe6hXv5ViFJSL8Smf_EGx6lw/exec",
 
   // Identitas Sekolah
   NAMA_SEKOLAH: "SD NEGERI 2 KARANGMAMGU",
