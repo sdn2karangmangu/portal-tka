@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel Guru & Pengawas - Portal Tryout TKA</title>
+    <meta name="description" content="Dashboard guru dan pengawas untuk mengelola jadwal tryout TKA, membuka akses ujian, dan menyetujui konfirmasi izin siswa." />
+
+    <!-- Google Fonts & Font Awesome 6 Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Quicksand:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50: '#eff6ff',
+                100: '#dbeafe',
+                500: '#3b82f6',
+                600: '#2563eb',
+                700: '#1d4ed8',
+                800: '#1e40af',
+                900: '#1e3a8a',
+              }
+            },
+            fontFamily: {
+              sans: ['Nunito', 'sans-serif'],
+              heading: ['Quicksand', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="./style.css">
+  </head>
+  <body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- ======================================================= -->
+    <!-- 1. LOGIN OVERLAY (GURU / ADMIN AUTHENTICATION)          -->
+    <!-- ======================================================= -->
+    <div id="loginOverlay" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4">
+      <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl border border-slate-200">
+        
+        <div class="text-center mb-6">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-700 to-indigo-600 text-white flex items-center justify-center text-3xl mx-auto mb-3 shadow-lg">
+            <i class="fa-solid fa-chalkboard-user"></i>
+          </div>
+          <h2 class="text-2xl font-black text-slate-900">
+            Login Guru & Pengawas
+          </h2>
+          <p class="text-xs text-slate-500 mt-1">
+            Portal Pengelolaan Tryout TKA Siswa SD
+          </p>
+        </div>
+
+        <div id="loginError" class="hidden mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold text-center">
+          Username atau password salah!
+        </div>
+
+        <form onsubmit="handleLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+              Username Guru
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                <i class="fa-solid fa-user"></i>
+              </span>
+              <input type="text" id="adminUsername" required value="guru" placeholder="Masukkan username..." class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+              Password
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                <i class="fa-solid fa-lock"></i>
+              </span>
+              <input type="password" id="adminPassword" required value="gurujuara123" placeholder="Masukkan password..." class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition" />
+            </div>
+          </div>
+
+          <button type="submit" class="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-sm rounded-xl shadow-md hover:shadow-lg transition cursor-pointer flex items-center justify-center gap-2">
+            <span>Masuk ke Dashboard Guru</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </form>
+
+        <!-- Akun Demo Cepat untuk Penguji -->
+        <div class="mt-6 pt-5 border-t border-slate-100 text-center">
+          <p class="text-xs text-slate-400 mb-2 font-medium">Akun Demo Default:</p>
+          <div class="flex items-center justify-center gap-2">
+            <button onclick="fillDemoAccount('guru', 'gurujuara123')" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-bold transition">
+              Akun Guru (guru)
+            </button>
+            <button onclick="fillDemoAccount('admin', 'admin123')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition">
+              Akun Admin (admin)
+            </button>
+          </div>
+          <div class="mt-4">
+            <a href="./index.html" class="text-xs text-slate-500 hover:text-blue-600 font-semibold inline-flex items-center gap-1">
+              <i class="fa-solid fa-arrow-left"></i> Kembali ke Halaman Siswa
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- 2. ADMIN MAIN DASHBOARD (AFTER LOGIN)                   -->
+    <!-- ======================================================= -->
+    <div id="adminMainContent" class="hidden flex-1 flex flex-col">
+      
+      <!-- Top Navigation Header -->
+      <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 flex flex-wrap items-center justify-between gap-3">
+          
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-700 text-white flex items-center justify-center text-lg font-bold shadow">
+              <i class="fa-solid fa-chalkboard-user"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-extrabold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                  RUANG PENGELOLA GURU
+                </span>
+                <span id="adminConnectionStatus" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Online
+                </span>
+              </div>
+              <h1 class="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+                Panel Kontrol Tryout TKA
+              </h1>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <!-- Active Teacher Name -->
+            <div class="hidden sm:flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs">
+              <i class="fa-solid fa-user-tie text-blue-600"></i>
+              <span id="adminHeaderName" class="font-bold text-slate-800">Pak Budi Rahardjo, S.Pd.</span>
+            </div>
+
+            <!-- View Student Page -->
+            <a href="./index.html" target="_blank" class="px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5" title="Buka Tampilan Siswa di Tab Baru">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              <span class="hidden md:inline">Tinjau Halaman Siswa</span>
+            </a>
+
+            <!-- Logout -->
+            <button onclick="handleLogout()" class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+              <i class="fa-solid fa-right-from-bracket"></i>
+              <span class="hidden sm:inline">Keluar</span>
+            </button>
+          </div>
+
+        </div>
+      </header>
+
+      <!-- Main Body -->
+      <main class="max-w-7xl w-full mx-auto px-4 py-6 sm:px-6 flex-1 space-y-6">
+
+        <!-- STATS OVERVIEW CARDS -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shrink-0">
+              <i class="fa-solid fa-book-bookmark"></i>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500 font-semibold">Total Tryout</div>
+              <div id="statTotalTryout" class="text-2xl font-black text-slate-800">0</div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
+              <i class="fa-solid fa-satellite-dish"></i>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500 font-semibold">Ujian Aktif</div>
+              <div id="statActiveTryout" class="text-2xl font-black text-emerald-600">0</div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-4 border border-amber-200 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shrink-0 animate-pulse">
+              <i class="fa-solid fa-user-clock"></i>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500 font-semibold">Menunggu Izin</div>
+              <div id="statPendingPermissions" class="text-2xl font-black text-amber-600">0</div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl shrink-0">
+              <i class="fa-solid fa-user-check"></i>
+            </div>
+            <div>
+              <div class="text-xs text-slate-500 font-semibold">Siswa Diizinkan</div>
+              <div id="statApprovedPermissions" class="text-2xl font-black text-indigo-600">0</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- NAVIGATION TABS -->
+        <div class="flex items-center gap-2 border-b border-slate-200 overflow-x-auto pb-1 text-xs sm:text-sm font-bold">
+          <button id="tab-btn-permissions" onclick="switchAdminTab('permissions')" class="admin-tab-btn px-4 py-2.5 rounded-xl bg-blue-600 text-white shadow transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Konfirmasi Siswa</span>
+            <span id="tabPendingBadge" class="hidden px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-400 text-slate-900 animate-bounce">0</span>
+          </button>
+          
+          <button id="tab-btn-tryouts" onclick="switchAdminTab('tryouts')" class="admin-tab-btn px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-folder-open"></i>
+            <span>Kelola Tryout TKA</span>
+          </button>
+
+          <button id="tab-btn-announcements" onclick="switchAdminTab('announcements')" class="admin-tab-btn px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-bullhorn"></i>
+            <span>Pengumuman</span>
+          </button>
+
+          <button id="tab-btn-students" onclick="switchAdminTab('students')" class="admin-tab-btn px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-users"></i>
+            <span>Daftar Siswa</span>
+          </button>
+
+          <button id="tab-btn-sheets" onclick="switchAdminTab('sheets')" class="admin-tab-btn px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-file-excel text-emerald-600"></i>
+            <span>Integrasi Google Sheets</span>
+          </button>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- TAB PANEL 1: KONFIRMASI SISWA (APPROVAL QUEUE)          -->
+        <!-- ======================================================= -->
+        <div id="panel-permissions" class="admin-panel space-y-4">
+          <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-lg font-black text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-users-line text-blue-600"></i>
+                Antrean Permintaan Izin Mengikuti Tryout
+              </h2>
+              <p class="text-xs text-slate-500">
+                Siswa yang menekan "Minta Izin" di HP/komputernya akan muncul otomatis di sini.
+              </p>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="flex flex-wrap items-center gap-2.5">
+              <!-- Filter Tryout -->
+              <select id="permissionTryoutFilter" onchange="loadAdminData()" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none">
+                <option value="">Semua Tryout</option>
+              </select>
+
+              <!-- Filter Status -->
+              <select id="permissionStatusFilter" onchange="loadAdminData()" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none">
+                <option value="">Semua Status</option>
+                <option value="MENUNGGU" selected>Hanya Menunggu (Pending)</option>
+                <option value="DISETUJUI">Sudah Disetujui</option>
+              </select>
+
+              <!-- Batch Approve Button -->
+              <button onclick="approveAllPending()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold shadow transition flex items-center gap-1.5 cursor-pointer">
+                <i class="fa-solid fa-check-double"></i>
+                <span>Setujui Semua Sekaligus</span>
+              </button>
+
+              <!-- Refresh Button -->
+              <button onclick="loadAdminData()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition" title="Segarkan Data">
+                <i class="fa-solid fa-rotate"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Table Permissions -->
+          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 border-b border-slate-200 text-[11px] font-extrabold text-slate-600 uppercase tracking-wider">
+                  <tr>
+                    <th class="py-3 px-4">Waktu Minta</th>
+                    <th class="py-3 px-4">Nama Siswa</th>
+                    <th class="py-3 px-4">NIS</th>
+                    <th class="py-3 px-4">Tryout</th>
+                    <th class="py-3 px-4">Status</th>
+                    <th class="py-3 px-4">Waktu Disetujui</th>
+                    <th class="py-3 px-4 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="permissionsTableBody">
+                  <!-- Rendered via admin.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- TAB PANEL 2: KELOLA TRYOUT                              -->
+        <!-- ======================================================= -->
+        <div id="panel-tryouts" class="admin-panel hidden space-y-4">
+          <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-lg font-black text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-folder-open text-blue-600"></i>
+                Daftar & Jadwal Tryout TKA
+              </h2>
+              <p class="text-xs text-slate-500">
+                Atur judul, mata pelajaran, link formulir/CBT, petunjuk ujian, dan buka/tutup akses sakelar.
+              </p>
+            </div>
+
+            <button onclick="openAddTryoutModal()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-extrabold shadow transition flex items-center gap-2 cursor-pointer self-start sm:self-auto">
+              <i class="fa-solid fa-plus"></i>
+              <span>Tambah Tryout Baru</span>
+            </button>
+          </div>
+
+          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 border-b border-slate-200 text-[11px] font-extrabold text-slate-600 uppercase tracking-wider">
+                  <tr>
+                    <th class="py-3 px-4">Nama Tryout & Petunjuk</th>
+                    <th class="py-3 px-4">Mata Pelajaran</th>
+                    <th class="py-3 px-4">Jadwal Pelaksanaan</th>
+                    <th class="py-3 px-4">Link URL TKA</th>
+                    <th class="py-3 px-4">Akses Ujian (Buka/Tutup)</th>
+                    <th class="py-3 px-4 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tryoutsTableBody">
+                  <!-- Rendered via admin.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- TAB PANEL 3: KELOLA PENGUMUMAN                          -->
+        <!-- ======================================================= -->
+        <div id="panel-announcements" class="admin-panel hidden space-y-4">
+          <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-lg font-black text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-bullhorn text-orange-500"></i>
+                Kelola Pengumuman Halaman Siswa
+              </h2>
+              <p class="text-xs text-slate-500">
+                Pesan atau arahan yang akan muncul di banner atas dashboard siswa.
+              </p>
+            </div>
+
+            <button onclick="openAddAnnouncementModal()" class="px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-extrabold shadow transition flex items-center gap-2 cursor-pointer self-start sm:self-auto">
+              <i class="fa-solid fa-plus"></i>
+              <span>Buat Pengumuman Baru</span>
+            </button>
+          </div>
+
+          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 border-b border-slate-200 text-[11px] font-extrabold text-slate-600 uppercase tracking-wider">
+                  <tr>
+                    <th class="py-3 px-4">Judul</th>
+                    <th class="py-3 px-4">Isi Pesan</th>
+                    <th class="py-3 px-4">Tanggal</th>
+                    <th class="py-3 px-4">Status</th>
+                    <th class="py-3 px-4 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="announcementsTableBody">
+                  <!-- Rendered via admin.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- TAB PANEL 4: DAFTAR SISWA                               -->
+        <!-- ======================================================= -->
+        <div id="panel-students" class="admin-panel hidden space-y-4">
+          <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-lg font-black text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-users text-blue-600"></i>
+                Data Siswa Peserta TKA
+              </h2>
+              <p class="text-xs text-slate-500">
+                Data master siswa yang terdaftar untuk mengikuti asesmen tryout.
+              </p>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-slate-50 border-b border-slate-200 text-[11px] font-extrabold text-slate-600 uppercase tracking-wider">
+                  <tr>
+                    <th class="py-3 px-4">NIS</th>
+                    <th class="py-3 px-4">Nama Lengkap</th>
+                    <th class="py-3 px-4">Kelas</th>
+                    <th class="py-3 px-4">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="studentsTableBody">
+                  <!-- Rendered via admin.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- TAB PANEL 5: INTEGRASI GOOGLE SHEETS & APPS SCRIPT      -->
+        <!-- ======================================================= -->
+        <div id="panel-sheets" class="admin-panel hidden space-y-6">
+          
+          <!-- Konfigurasi URL Web App -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h2 class="text-lg font-black text-slate-900 flex items-center gap-2">
+                  <i class="fa-solid fa-link text-emerald-600"></i>
+                  Konfigurasi URL Google Apps Script Web App
+                </h2>
+                <p class="text-xs text-slate-500 mt-1">
+                  Masukkan Web App URL hasil Deploy Google Apps Script untuk menghubungkan aplikasi ke Google Sheets milik sekolah secara realtime.
+                </p>
+              </div>
+              <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                Database Cloud
+              </span>
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-xs font-bold text-slate-700">Web App URL (exec URL):</label>
+              <div class="flex flex-col sm:flex-row gap-2">
+                <input type="url" id="sheetsGasUrlInput" placeholder="https://script.google.com/macros/s/AKfycb.../exec" class="flex-1 px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <button onclick="saveGasUrl()" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow transition cursor-pointer">
+                  Simpan URL
+                </button>
+                <button onclick="testGasConnection()" class="px-4 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-extrabold text-xs rounded-xl transition cursor-pointer">
+                  Uji Koneksi
+                </button>
+              </div>
+              <div id="gasTestResult" class="text-xs pt-1"></div>
+            </div>
+
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
+              <span>Status saat ini: Jika URL dikosongkan, aplikasi berjalan dalam <strong>Mode Simulasi Lokal (LocalStorage)</strong> yang siap dipakai demo kapan saja.</span>
+              <button onclick="resetToDefaultData()" class="text-red-600 hover:underline font-bold text-[11px] shrink-0 ml-2">
+                Reset Data Demo
+              </button>
+            </div>
+          </div>
+
+          <!-- Panduan 3 Langkah Pemasangan Google Sheets -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+            <h3 class="text-base font-black text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-graduation-cap text-blue-600"></i>
+              Panduan Menghubungkan ke Google Sheets & Apps Script (5 Menit Jadi)
+            </h3>
+
+            <div class="space-y-3 text-xs text-slate-600">
+              <div class="p-3.5 bg-blue-50/60 rounded-2xl border border-blue-100">
+                <span class="font-bold text-blue-900">Langkah 1: Buat Google Spreadsheet Baru</span>
+                <p class="mt-0.5">Buka <a href="https://sheets.new" target="_blank" class="text-blue-600 font-bold underline">sheets.new</a> dan beri nama spreadsheet misalnya "Database Tryout TKA Siswa".</p>
+              </div>
+
+              <div class="p-3.5 bg-blue-50/60 rounded-2xl border border-blue-100">
+                <span class="font-bold text-blue-900">Langkah 2: Buka Apps Script & Tempel Kode</span>
+                <p class="mt-0.5">Di Google Sheets, klik menu <strong>Ekstensi (Extensions) &rarr; Apps Script</strong>. Hapus isi <code>Code.gs</code> bawaan, lalu salin dan tempelkan seluruh isi file <code>Code.gs</code> dari proyek ini.</p>
+              </div>
+
+              <div class="p-3.5 bg-blue-50/60 rounded-2xl border border-blue-100">
+                <span class="font-bold text-blue-900">Langkah 3: Jalankan Inisialisasi Otomatis (Opsional / Praktis)</span>
+                <p class="mt-0.5">Di editor Apps Script, pilih fungsi <code>setupSheets</code> dari dropdown atas, lalu klik <strong>Run</strong>. Script akan otomatis membuat 4 sheet (Users, Tryout, Konfirmasi, Pengumuman) beserta header kolom dan data awal!</p>
+              </div>
+
+              <div class="p-3.5 bg-blue-50/60 rounded-2xl border border-blue-100">
+                <span class="font-bold text-blue-900">Langkah 4: Deploy Web App</span>
+                <p class="mt-0.5">Klik tombol biru <strong>Deploy &rarr; New deployment</strong>. Pilih tipe <strong>Web app</strong>. Atur:
+                  <br>&bull; <em>Execute as:</em> <strong>Me (email guru)</strong>
+                  <br>&bull; <em>Who has access:</em> <strong>Anyone (Siapa saja)</strong>
+                  <br>Klik Deploy &rarr; Salin <strong>Web App URL</strong> yang berakhiran <code>/exec</code>, lalu tempelkan ke kolom input di atas!</p>
+              </div>
+            </div>
+
+            <!-- Detail Struktur Sheets -->
+            <div class="pt-4 border-t border-slate-100">
+              <h4 class="font-bold text-slate-800 text-xs mb-2">4 Sheet yang Digunakan:</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
+                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                  <div class="font-bold text-blue-700">1. Users</div>
+                  <div class="text-slate-500 font-mono text-[10px]">ID, Nama, NIS, Kelas, Username, Password, Role</div>
+                </div>
+                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                  <div class="font-bold text-blue-700">2. Tryout</div>
+                  <div class="text-slate-500 font-mono text-[10px]">ID, Judul, Mapel, Tanggal, Jam Mulai, Jam Selesai, Link TKA, Petunjuk, Status</div>
+                </div>
+                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                  <div class="font-bold text-blue-700">3. Konfirmasi</div>
+                  <div class="text-slate-500 font-mono text-[10px]">ID, ID Tryout, NIS, Nama Siswa, Status Konfirmasi, Waktu Permintaan, Waktu Persetujuan</div>
+                </div>
+                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                  <div class="font-bold text-blue-700">4. Pengumuman</div>
+                  <div class="text-slate-500 font-mono text-[10px]">ID, Judul, Isi Pengumuman, Tanggal, Status</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </main>
+
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- MODAL: FORM TAMBAH / EDIT TRYOUT                        -->
+    <!-- ======================================================= -->
+    <div id="tryoutFormModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+      <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
+        
+        <div class="flex items-center justify-between mb-4">
+          <h3 id="tryoutModalTitle" class="text-lg font-black text-slate-900">
+            Tambah Tryout Baru
+          </h3>
+          <button onclick="closeTryoutModal()" class="text-slate-400 hover:text-slate-600">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <form onsubmit="handleSaveTryout(event)" class="space-y-3.5 text-xs">
+          <input type="hidden" id="tryoutFormId" />
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Nama / Judul Tryout *</label>
+            <input type="text" id="tryoutFormJudul" required placeholder="Contoh: Tryout 1 TKA Matematika - Numerasi" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Mata Pelajaran *</label>
+              <select id="tryoutFormMapel" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="Matematika">Matematika</option>
+                <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                <option value="IPAS">IPAS (Sains & Sosial)</option>
+                <option value="PPKn">PPKn / Karakter Pancasila</option>
+                <option value="Bahasa Inggris">Bahasa Inggris</option>
+                <option value="Literasi & Numerasi">Literasi & Numerasi</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Tanggal Pelaksanaan *</label>
+              <input type="date" id="tryoutFormTanggal" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Jam Mulai *</label>
+              <input type="time" id="tryoutFormJamMulai" required value="08:00" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Jam Selesai *</label>
+              <input type="time" id="tryoutFormJamSelesai" required value="09:30" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Link URL TKA (Google Forms / Quizizz / Web CBT) *</label>
+            <input type="url" id="tryoutFormLink" placeholder="https://forms.gle/..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <span class="text-[10px] text-slate-400">Link ini tersimpan aman di server dan hanya dikirim ke siswa yang telah disetujui.</span>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Petunjuk / Pesan Khusus Guru</label>
+            <textarea id="tryoutFormPetunjuk" rows="2" placeholder="Contoh: Kerjakan soal 1-30, dilarang membuka kalkulator, berdoalah sebelum mulai." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Status Awal Ujian</label>
+            <select id="tryoutFormStatus" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="DIBUKA">DIBUKA (Siswa dapat meminta izin)</option>
+              <option value="DITUTUP">DITUTUP (Belum dibuka oleh guru)</option>
+              <option value="SELESAI">SELESAI (Ujian telah ditutup)</option>
+            </select>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+            <button type="button" onclick="closeTryoutModal()" class="px-4 py-2.5 rounded-xl border border-slate-300 font-bold text-xs text-slate-600 hover:bg-slate-50 transition cursor-pointer">
+              Batal
+            </button>
+            <button type="submit" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shadow transition cursor-pointer">
+              Simpan Tryout
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- MODAL: FORM TAMBAH PENGUMUMAN                           -->
+    <!-- ======================================================= -->
+    <div id="announcementFormModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+      <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-black text-slate-900">
+            Buat Pengumuman Baru
+          </h3>
+          <button onclick="closeAnnouncementModal()" class="text-slate-400 hover:text-slate-600">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <form onsubmit="handleSaveAnnouncement(event)" class="space-y-3.5 text-xs">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Judul Pengumuman</label>
+            <input type="text" id="announcementFormJudul" required placeholder="Contoh: 🔔 Tryout TKA Matematika Dibuka" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500" />
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Isi Pesan untuk Siswa</label>
+            <textarea id="announcementFormIsi" required rows="3" placeholder="Tuliskan arahan, motivasi, atau informasi untuk anak-anak..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Tanggal</label>
+            <input type="date" id="announcementFormTanggal" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500" />
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+            <button type="button" onclick="closeAnnouncementModal()" class="px-4 py-2.5 rounded-xl border border-slate-300 font-bold text-xs text-slate-600 hover:bg-slate-50 transition cursor-pointer">
+              Batal
+            </button>
+            <button type="submit" class="px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-extrabold text-xs shadow transition cursor-pointer">
+              Terbitkan
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- FLOATING ADMIN TOAST -->
+    <div id="adminToast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 hidden">
+      <div class="bg-slate-900/95 backdrop-blur text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-3 text-sm">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="adminToastMsg" class="font-medium">Aksi berhasil dilakukan</span>
+      </div>
+    </div>
+
+    <!-- Script Admin Vanilla JS -->
+    <script src="./admin.js"></script>
+  </body>
+</html>

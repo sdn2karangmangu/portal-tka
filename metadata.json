@@ -1,0 +1,6 @@
+{
+  "name": "Portal Tryout TKA Siswa",
+  "description": "Pusat informasi dan akses link Tryout TKA untuk siswa SD dengan verifikasi konfirmasi izin guru, pengumuman jadwal, dan dashboard manajemen guru berbasis Google Sheets & Apps Script.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

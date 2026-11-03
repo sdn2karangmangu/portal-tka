@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Portal Tryout TKA Siswa</title>
+    <meta name="description" content="Pusat informasi dan akses link Tryout TKA untuk siswa SD dengan verifikasi konfirmasi izin guru, pengumuman jadwal, dan dashboard manajemen guru berbasis Google Sheets & Apps Script." />
+    <meta property="og:title" content="Portal Tryout TKA Siswa" />
+    <meta property="og:description" content="Pusat informasi dan akses link Tryout TKA untuk siswa SD dengan verifikasi konfirmasi izin guru, pengumuman jadwal, dan dashboard manajemen guru berbasis Google Sheets & Apps Script." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Google Fonts & Font Awesome 6 Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Quicksand:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50: '#eff6ff',
+                100: '#dbeafe',
+                500: '#3b82f6',
+                600: '#2563eb',
+                700: '#1d4ed8',
+                800: '#1e40af',
+                900: '#1e3a8a',
+              },
+              accent: {
+                orange: '#ea580c',
+                amber: '#f59e0b',
+                green: '#16a34a',
+              }
+            },
+            fontFamily: {
+              sans: ['Nunito', 'sans-serif'],
+              heading: ['Quicksand', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="./style.css">
+  </head>
+  <body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col selection:bg-blue-200">
+
+    <!-- TOP HEADER -->
+    <header class="header-glass sticky top-0 z-40 shadow-sm border-b border-slate-200">
+      <div class="max-w-6xl mx-auto px-4 py-3 sm:px-6 flex flex-wrap items-center justify-between gap-3">
+        
+        <!-- School & Portal Title -->
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-700 via-blue-600 to-indigo-500 text-white flex items-center justify-center text-2xl shadow-md border-2 border-white">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
+                SD NEGERI HARAPAN BANGSA
+              </span>
+              <span id="dataSourceIndicator" class="hidden sm:inline-flex items-center gap-1 text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Siap
+              </span>
+            </div>
+            <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              PORTAL TRYOUT TKA SISWA
+            </h1>
+          </div>
+        </div>
+
+        <!-- Right: Student Profile & Navigation -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          <!-- Student Badge Container (Interactive Switch) -->
+          <div id="studentBadgeContainer">
+            <!-- Rendered by app.js -->
+          </div>
+
+          <!-- Refresh Button -->
+          <button onclick="loadPortalData(); showNotification('Data tryout diperbarui!', 'info');" class="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-300 flex items-center justify-center transition shadow-sm cursor-pointer" title="Segarkan Data Sekarang">
+            <i class="fa-solid fa-arrows-rotate text-sm"></i>
+          </button>
+
+          <!-- Help Info Button -->
+          <button onclick="openHelpModal()" class="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-300 flex items-center justify-center transition shadow-sm" title="Petunjuk & Bantuan">
+            <i class="fa-solid fa-circle-question text-lg"></i>
+          </button>
+
+          <!-- Teacher / Admin Page Link -->
+          <a href="./admin.html" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition shadow-sm border border-slate-700" title="Portal Khusus Guru Pengawas">
+            <i class="fa-solid fa-chalkboard-user text-amber-400"></i>
+            <span class="hidden sm:inline">Halaman Guru</span>
+          </a>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- MAIN WRAPPER -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:px-6 space-y-6">
+
+      <!-- WELCOME HERO & REALTIME CLOCK -->
+      <section class="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white rounded-3xl p-6 sm:p-8 shadow-lg relative overflow-hidden">
+        <!-- Background Decorative Circles -->
+        <div class="absolute -right-10 -bottom-10 w-52 h-52 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -left-10 -top-10 w-40 h-40 bg-orange-400/20 rounded-full blur-xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div class="space-y-2 max-w-2xl">
+            <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-extrabold text-blue-50 border border-white/20">
+              <i class="fa-solid fa-sparkles text-amber-300"></i> Asesmen Standar Pendidikan Dasar
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-black tracking-tight text-white leading-tight">
+              Selamat Datang di Ujian Tryout TKA!
+            </h2>
+            <p class="text-blue-100 text-sm sm:text-base leading-relaxed">
+              Persiapkan dirimu dengan tenang. Tekan tombol <strong>"Minta Izin"</strong> pada kartu tryout yang kamu ikuti, lalu tunggu bapak/ibu guru mengonfirmasi di depan kelas sebelum menekan <strong>"Mulai TKA"</strong>.
+            </p>
+          </div>
+
+          <!-- Digital Clock & Status Badge -->
+          <div class="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center text-center shrink-0 min-w-[200px]">
+            <span class="text-xs font-bold text-blue-200 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+              <i class="fa-regular fa-clock"></i> Waktu Sekarang
+            </span>
+            <div id="digitalClock" class="font-mono font-extrabold text-2xl sm:text-3xl tracking-wider text-amber-300 drop-shadow-sm">
+              08:00:00 WIB
+            </div>
+            <div class="mt-2 text-[11px] font-semibold text-blue-100 bg-white/10 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Sistem Aktif & Siap
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION B: NOTIFIKASI & PENGUMUMAN TERBARU -->
+      <section class="space-y-2">
+        <div class="flex items-center justify-between">
+          <h3 class="font-black text-slate-800 text-base sm:text-lg flex items-center gap-2">
+            <i class="fa-solid fa-bullhorn text-orange-500"></i>
+            Pengumuman & Petunjuk Guru
+          </h3>
+          <span class="text-xs text-slate-400 font-medium">Informasi resmi terkini</span>
+        </div>
+
+        <div id="announcementContainer">
+          <!-- Announcements rendered dynamically via app.js -->
+        </div>
+      </section>
+
+      <!-- SECTION C: KARTU TRYOUT TKA & FILTER -->
+      <section class="space-y-4">
+        
+        <!-- Tab Filter & Section Title -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200/90 shadow-sm">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-orange-500"></span>
+            <h3 class="font-black text-slate-900 text-base sm:text-lg">
+              Daftar Tryout TKA
+            </h3>
+            <span id="portalSyncSpinner" class="hidden text-blue-600 text-xs flex items-center gap-1 font-semibold">
+              <i class="fa-solid fa-rotate fa-spin"></i> Memuat...
+            </span>
+          </div>
+
+          <!-- Filter Buttons -->
+          <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl self-start sm:self-auto text-xs font-bold">
+            <button id="filter-btn-active" onclick="setTryoutFilter('active')" class="filter-tab-btn px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow transition cursor-pointer">
+              Ujian Hari Ini
+            </button>
+            <button id="filter-btn-all" onclick="setTryoutFilter('all')" class="filter-tab-btn px-3 py-1.5 rounded-lg bg-white text-slate-600 hover:bg-slate-50 transition cursor-pointer">
+              Semua Jadwal
+            </button>
+            <button id="filter-btn-history" onclick="setTryoutFilter('history')" class="filter-tab-btn px-3 py-1.5 rounded-lg bg-white text-slate-600 hover:bg-slate-50 transition cursor-pointer">
+              Riwayat Selesai
+            </button>
+          </div>
+        </div>
+
+        <!-- Grid Cards Container -->
+        <div id="tryoutListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- Tryout cards rendered dynamically via app.js -->
+        </div>
+
+      </section>
+
+      <!-- PETUNJUK 4 LANGKAH MUDAH SISWA SD -->
+      <section class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+        <h3 class="font-black text-slate-900 text-base mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-list-check text-blue-600"></i>
+          Alur Mengikuti Tryout TKA (4 Langkah Mudah)
+        </h3>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-blue-50/60 rounded-2xl p-4 border border-blue-100 flex flex-col justify-between">
+            <div>
+              <div class="w-8 h-8 rounded-xl bg-blue-600 text-white font-black flex items-center justify-center text-sm mb-2 shadow">1</div>
+              <h4 class="font-extrabold text-slate-900 text-sm mb-1">Cek Jadwal & Nama</h4>
+              <p class="text-xs text-slate-600">Pastikan namamu dan mata pelajaran yang akan diujikan sudah sesuai di kartu ujian.</p>
+            </div>
+          </div>
+
+          <div class="bg-orange-50/60 rounded-2xl p-4 border border-orange-100 flex flex-col justify-between">
+            <div>
+              <div class="w-8 h-8 rounded-xl bg-orange-500 text-white font-black flex items-center justify-center text-sm mb-2 shadow">2</div>
+              <h4 class="font-extrabold text-slate-900 text-sm mb-1">Tekan Minta Izin</h4>
+              <p class="text-xs text-slate-600">Tekan tombol oranye "Minta Izin Ikut TKA" agar namamu masuk ke antrean guru pengawas.</p>
+            </div>
+          </div>
+
+          <div class="bg-amber-50/60 rounded-2xl p-4 border border-amber-100 flex flex-col justify-between">
+            <div>
+              <div class="w-8 h-8 rounded-xl bg-amber-500 text-white font-black flex items-center justify-center text-sm mb-2 shadow">3</div>
+              <h4 class="font-extrabold text-slate-900 text-sm mb-1">Tunggu Guru Setujui</h4>
+              <p class="text-xs text-slate-600">Guru akan memeriksa kesiapanmu di kelas dan menekan tombol persetujuan di dashboard guru.</p>
+            </div>
+          </div>
+
+          <div class="bg-emerald-50/60 rounded-2xl p-4 border border-emerald-100 flex flex-col justify-between">
+            <div>
+              <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white font-black flex items-center justify-center text-sm mb-2 shadow">4</div>
+              <h4 class="font-extrabold text-slate-900 text-sm mb-1">Klik MULAI TKA</h4>
+              <p class="text-xs text-slate-600">Setelah tombol berubah hijau cerah, tekan untuk langsung membuka link soal ujian!</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 mt-12 py-6 text-center text-xs text-slate-500">
+      <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-slate-700">PORTAL TRYOUT TKA</span> &bull; 
+          <span>Sistem Ujian Terintegrasi Google Sheets & Apps Script</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="./admin.html" class="text-blue-600 hover:underline font-bold">Login Guru</a>
+          <span>&bull;</span>
+          <button onclick="openHelpModal()" class="text-slate-500 hover:text-slate-800">Bantuan Teknis</button>
+        </div>
+      </div>
+    </footer>
+
+    <!-- ======================================================= -->
+    <!-- MODAL 1: KONFIRMASI MULAI TKA (SEBELUM BUKA LINK UJIAN) -->
+    <!-- ======================================================= -->
+    <div id="examConfirmModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+      <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border-2 border-emerald-400 animate-in fade-in zoom-in-95 duration-200">
+        
+        <div class="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm animate-bounce">
+          <i class="fa-solid fa-rocket"></i>
+        </div>
+
+        <h3 class="text-xl font-black text-slate-900 text-center mb-1">
+          Siap Memulai Ujian TKA?
+        </h3>
+        <p class="text-xs text-slate-500 text-center mb-4">
+          Izinmu telah diverifikasi dan disetujui oleh guru pengawas.
+        </p>
+
+        <!-- Exam Details Box -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-4 space-y-2 text-xs">
+          <div class="flex justify-between items-center">
+            <span class="text-slate-500 font-medium">Nama Siswa:</span>
+            <span id="modalStudentName" class="font-bold text-slate-800">Ahmad Fauzi</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-500 font-medium">Mata Pelajaran:</span>
+            <span id="modalExamMapel" class="font-bold text-blue-700">Matematika</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-500 font-medium">Waktu Ujian:</span>
+            <span id="modalExamTime" class="font-bold text-slate-800">08:00 - 09:30 WIB</span>
+          </div>
+          <div class="pt-2 border-t border-slate-200">
+            <div class="font-extrabold text-slate-900 mb-1" id="modalExamTitle">Tryout 1 TKA</div>
+            <p class="text-[11px] text-slate-600">Pastikan kamu tidak menutup tab ujian sampai menekan tombol "Kirim/Selesai" di lembar soal.</p>
+          </div>
+        </div>
+
+        <!-- Checklist Persiapan Ceria -->
+        <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3 mb-5 text-xs text-emerald-900 space-y-1">
+          <div class="font-bold flex items-center gap-1.5">
+            <i class="fa-solid fa-circle-check text-emerald-600"></i> Persiapan Terakhir:
+          </div>
+          <ul class="list-disc list-inside text-[11px] space-y-0.5 text-emerald-800">
+            <li>Sudah berdoa sebelum memulai?</li>
+            <li>Kertas coretan dan alat tulis sudah siap?</li>
+            <li>Kerjakan dengan jujur dan teliti!</li>
+          </ul>
+        </div>
+
+        <!-- Buttons -->
+        <div class="grid grid-cols-2 gap-3">
+          <button onclick="closeExamConfirmModal()" class="py-3 px-4 rounded-xl border border-slate-300 font-bold text-xs text-slate-700 hover:bg-slate-50 transition cursor-pointer">
+            Kembali
+          </button>
+          <button onclick="executeOpenExamLink()" class="py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5">
+            <span>Buka Soal Ujian</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- MODAL 2: PILIH / GANTI SISWA (STUDENT PICKER)           -->
+    <!-- ======================================================= -->
+    <div id="studentPickerModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+      <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+        
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+              <i class="fa-solid fa-user-group text-sm"></i>
+            </div>
+            <h3 class="font-black text-slate-900 text-lg">
+              Pilih Identitas Siswa
+            </h3>
+          </div>
+          <button onclick="closeStudentPickerModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 flex items-center justify-center">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <p class="text-xs text-slate-500 mb-4">
+          Pilih nama dan nomor NIS kamu dari daftar kelas di bawah ini sebelum meminta izin ujian:
+        </p>
+
+        <!-- Student List Container -->
+        <div id="studentPickerList" class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+          <!-- Rendered via app.js -->
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-100 text-center">
+          <button onclick="closeStudentPickerModal()" class="text-xs text-slate-500 hover:text-slate-800 font-semibold">
+            Tutup Jendela
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- MODAL 3: PANDUAN SISWA & BANTUAN                       -->
+    <!-- ======================================================= -->
+    <div id="helpModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+      <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-black text-slate-900 text-lg flex items-center gap-2">
+            <i class="fa-solid fa-circle-question text-blue-600"></i>
+            Petunjuk & Tata Tertib Siswa
+          </h3>
+          <button onclick="closeHelpModal()" class="text-slate-400 hover:text-slate-600">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <div class="space-y-3 text-xs text-slate-600 leading-relaxed max-h-80 overflow-y-auto pr-1">
+          <div class="bg-blue-50 p-3.5 rounded-2xl border border-blue-100">
+            <div class="font-bold text-blue-900 mb-1">1. Mengapa tombol Mulai TKA berwarna kuning / belum aktif?</div>
+            <p>Tandanya kamu sedang menunggu guru mengonfirmasi kehadiranmu di kelas. Guru akan menyetujui antrean izin siswa sebelum waktu ujian dimulai.</p>
+          </div>
+
+          <div class="bg-orange-50 p-3.5 rounded-2xl border border-orange-100">
+            <div class="font-bold text-orange-900 mb-1">2. Apa yang harus dilakukan jika tombol tidak berubah hijau?</div>
+            <p>Tekan tombol <strong>"Periksa Status Sekarang"</strong> atau laporkan kepada bapak/ibu guru pengawas di ruang kelas bahwa kamu sudah menekan tombol minta izin.</p>
+          </div>
+
+          <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+            <div class="font-bold text-slate-900 mb-1">3. Tata Tertib Selama Ujian:</div>
+            <ul class="list-disc list-inside space-y-1">
+              <li>Dilarang membuka tab lain atau mencari jawaban di internet.</li>
+              <li>Dilarang menggunakan kalkulator kecuali diizinkan guru.</li>
+              <li>Jaga ketenangan di ruang kelas/lab komputer.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="mt-5 text-right">
+          <button onclick="closeHelpModal()" class="py-2.5 px-5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition">
+            Saya Mengerti
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLOATING TOAST NOTIFICATION -->
+    <div id="appToast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 hidden">
+      <div class="bg-slate-900/95 backdrop-blur text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-3 text-sm">
+        <i class="fa-solid fa-bell text-amber-400 text-base"></i>
+        <span id="appToastMsg" class="font-medium">Pesan notifikasi</span>
+      </div>
+    </div>
+
+    <!-- Script App Vanilla JS -->
+    <script src="./app.js"></script>
+  </body>
+</html>
