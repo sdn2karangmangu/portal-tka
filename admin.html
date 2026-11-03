@@ -458,10 +458,21 @@
                 </button>
               </div>
               <div id="gasTestResult" class="text-xs pt-1"></div>
+              <div id="fixedUrlBadgeInfo" class="text-xs pt-1"></div>
+            </div>
+
+            <!-- Box Akses Siswa di Rumah -->
+            <div class="p-3.5 bg-blue-50/80 rounded-2xl border border-blue-200 text-xs text-blue-900 space-y-1.5">
+              <div class="font-bold flex items-center gap-1.5">
+                <i class="fa-solid fa-house-laptop text-blue-600"></i> Akses Siswa dari Rumah (Link Tetap)
+              </div>
+              <p class="text-slate-600 text-[11px] leading-relaxed">
+                Untuk memastikan seluruh siswa di rumah atau HP manapun langsung terhubung otomatis ke database Google Sheets tanpa konfigurasi browser, masukkan link Web App Anda pada file <strong><code>config.js</code></strong> di variabel <strong><code>CONFIG.DEFAULT_GAS_URL</code></strong>.
+              </p>
             </div>
 
             <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
-              <span>Status saat ini: Jika URL dikosongkan, aplikasi berjalan dalam <strong>Mode Simulasi Lokal (LocalStorage)</strong> yang siap dipakai demo kapan saja.</span>
+              <span>Status: Jika belum ada URL, aplikasi berjalan dalam <strong>Mode Simulasi Lokal</strong>.</span>
               <button onclick="resetToDefaultData()" class="text-red-600 hover:underline font-bold text-[11px] shrink-0 ml-2">
                 Reset Data Demo
               </button>
@@ -665,7 +676,8 @@
       </div>
     </div>
 
-    <!-- Script Admin Vanilla JS -->
+    <!-- Script Config & Admin Vanilla JS -->
+    <script src="./config.js"></script>
     <script src="./admin.js"></script>
   </body>
 </html>

@@ -48,6 +48,16 @@ function normalizeConfirmationStatus(val) {
   return s;
 }
 
+function getGasUrl() {
+  if (typeof window !== 'undefined' && typeof window.getActiveGasUrl === 'function') {
+    return window.getActiveGasUrl();
+  }
+  if (typeof CONFIG !== 'undefined' && CONFIG.DEFAULT_GAS_URL && CONFIG.DEFAULT_GAS_URL.trim().startsWith('http')) {
+    return CONFIG.DEFAULT_GAS_URL.trim();
+  }
+  return (localStorage.getItem('tka_gas_url') || '').trim();
+}
+
 function checkAuth() {
   const loginOverlay = document.getElementById('loginOverlay');
   const adminMain = document.getElementById('adminMainContent');
@@ -73,7 +83,7 @@ async function handleLogin(e) {
 
   if (errorEl) errorEl.classList.add('hidden');
 
-  const gasUrl = (localStorage.getItem('tka_gas_url') || '').trim();
+  const gasUrl = getGasUrl();
 
   if (gasUrl) {
     try {
@@ -135,7 +145,7 @@ function updateAdminHeader() {
 // ==========================================
 
 async function loadAdminData() {
-  const gasUrl = (localStorage.getItem('tka_gas_url') || '').trim();
+  const gasUrl = getGasUrl();
 
   let tryouts = [];
   let konfirmasi = [];
@@ -382,7 +392,7 @@ function renderPermissionsTable(konfirmasi, tryouts) {
  * Guru menyetujui izin siswa
  */
 async function approveStudentPermission(confirmationId) {
-  const gasUrl = (localStorage.getItem('tka_gas_url') || '').trim();
+  const gasUrl = getGasUrl();
   const konfirmasi = JSON.parse(localStorage.getItem('tka_konfirmasi')) || [];
   const target = konfirmasi.find(k => String(k.id).trim() === String(confirmationId).trim());
 
@@ -445,7 +455,7 @@ async function approveAllPending() {
     return;
   }
 
-  const gasUrl = (localStorage.getItem('tka_gas_url') || '').trim();
+  const gasUrl = getGasUrl();
   if (gasUrl) {
     try {
       await fetch(gasUrl, {
@@ -488,7 +498,7 @@ async function rejectStudentPermission(confirmationId) {
     return;
   }
 
-  const gasUrl = (localStorage.getItem('tka_gas_url') || '').trim();
+  const gasUrl = getGasUrl();
   if (gasUrl) {
     try {
       await fetch(gasUrl, {
@@ -583,7 +593,7 @@ function renderTryoutsTable(tryouts) {
 }
 
 async function toggleTryoutStatus(tryoutId, newStatus) {
-  const gasUrl = (localStorage.getItem('tka_gas_url') || '').trim();
+  const gasUrl = getGasUrl();
 
   if (gasUrl) {
     try {
@@ -676,7 +686,7 @@ async function handleSaveTryout(e) {
 
   const tryoutData = { id, judul, mapel, tanggal, jam_mulai, jam_selesai, link_tka, petunjuk, status };
 
-  const gasUrl = (localStorage.getItem('tka_gas_url') || '').trim();
+  const gasUrl = getGasUrl();
   if (gasUrl) {
     try {
       await fetch(gasUrl, {
@@ -709,7 +719,7 @@ async function deleteTryout(id) {
     return;
   }
 
-  const gasUrl = (localStorage.getItem('tka_gas_url') || '').trim();
+  const gasUrl = getGasUrl();
   if (gasUrl) {
     try {
       await fetch(gasUrl, {
@@ -806,7 +816,7 @@ async function handleSaveAnnouncement(e) {
     status: 'AKTIF'
   };
 
-  const gasUrl = (localStorage.getItem('tka_gas_url') || '').trim();
+  const gasUrl = getGasUrl();
   if (gasUrl) {
     try {
       await fetch(gasUrl, {
@@ -831,7 +841,7 @@ async function handleSaveAnnouncement(e) {
 async function deleteAnnouncement(id) {
   if (!confirm('Hapus pengumuman ini?')) return;
 
-  const gasUrl = (localStorage.getItem('tka_gas_url') || '').trim();
+  const gasUrl = getGasUrl();
   if (gasUrl) {
     try {
       await fetch(gasUrl, {
@@ -878,8 +888,17 @@ function renderStudentsTable(siswa) {
 
 function renderSheetsConfig() {
   const inputUrl = document.getElementById('sheetsGasUrlInput');
+  const activeUrl = getGasUrl();
   if (inputUrl) {
-    inputUrl.value = localStorage.getItem('tka_gas_url') || '';
+    inputUrl.value = activeUrl;
+  }
+  const fixedInfo = document.getElementById('fixedUrlBadgeInfo');
+  if (fixedInfo) {
+    if (typeof CONFIG !== 'undefined' && CONFIG.DEFAULT_GAS_URL && CONFIG.DEFAULT_GAS_URL.trim().startsWith('http')) {
+      fixedInfo.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-300"><i class="fa-solid fa-circle-check text-emerald-600"></i> Link Tetap Terpasang di config.js: <code class="font-mono text-emerald-900">${CONFIG.DEFAULT_GAS_URL}</code></span>`;
+    } else {
+      fixedInfo.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-50 text-blue-800 border border-blue-200"><i class="fa-solid fa-house-laptop text-blue-600"></i> Untuk akses siswa di rumah, tempelkan link Anda ke file <b>config.js</b> (variabel <code>DEFAULT_GAS_URL</code>) atau klik Simpan URL di sini.</span>`;
+    }
   }
 }
 
@@ -894,7 +913,7 @@ function saveGasUrl() {
 }
 
 async function testGasConnection() {
-  const gasUrl = (localStorage.getItem('tka_gas_url') || '').trim();
+  const gasUrl = getGasUrl();
   const resultEl = document.getElementById('gasTestResult');
   if (!resultEl) return;
 

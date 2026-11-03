@@ -173,6 +173,12 @@ let lastKnownStatuses = {}; // Melacak perubahan status untuk trigger animasi / 
 // ==========================================
 
 function getGasUrl() {
+  if (typeof window !== 'undefined' && typeof window.getActiveGasUrl === 'function') {
+    return window.getActiveGasUrl();
+  }
+  if (typeof CONFIG !== 'undefined' && CONFIG.DEFAULT_GAS_URL && CONFIG.DEFAULT_GAS_URL.trim().startsWith('http')) {
+    return CONFIG.DEFAULT_GAS_URL.trim();
+  }
   return (localStorage.getItem('tka_gas_url') || '').trim();
 }
 
