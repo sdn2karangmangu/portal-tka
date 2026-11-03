@@ -170,6 +170,10 @@ async function loadAdminData() {
         localStorage.setItem('tka_konfirmasi', JSON.stringify(konfirmasi));
         localStorage.setItem('tka_pengumuman', JSON.stringify(pengumuman));
         if (siswa.length > 0) localStorage.setItem('tka_siswa_list', JSON.stringify(siswa));
+        if (data.school_password) {
+          localStorage.setItem('tka_school_password', data.school_password);
+        }
+        updateSchoolPasswordBadge(data.school_password);
 
         updateConnectionBadge(true);
         renderCurrentTab(tryouts, konfirmasi, pengumuman, siswa);
@@ -900,6 +904,65 @@ function renderSheetsConfig() {
       fixedInfo.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-50 text-blue-800 border border-blue-200"><i class="fa-solid fa-house-laptop text-blue-600"></i> Untuk akses siswa di rumah, tempelkan link Anda ke file <b>config.js</b> (variabel <code>DEFAULT_GAS_URL</code>) atau klik Simpan URL di sini.</span>`;
     }
   }
+
+  updateSchoolPasswordBadge();
+}
+
+/**
+ * Memperbarui tampilan badge password sekolah aktif di panel admin
+ */
+function updateSchoolPasswordBadge(pass) {
+  const currentPass = pass || (typeof window.getActiveStudentPassword === 'function' 
+    ? window.getActiveStudentPassword() 
+    : (localStorage.getItem('tka_school_password') || 'tka2026'));
+  const badge = document.getElementById('adminCurrentSchoolPassBadge');
+  if (badge) {
+    badge.innerText = currentPass;
+  }
+}
+
+/**
+ * Menyimpan password gerbang masuk siswa baru (satu sekolah)
+ */
+async function handleSaveSchoolPassword() {
+  const input = document.getElementById('adminNewSchoolPassInput');
+  if (!input) return;
+  const newPass = input.value.trim();
+
+  if (!newPass) {
+    alert('Password baru tidak boleh kosong!');
+    input.focus();
+    return;
+  }
+
+  // Simpan di LocalStorage agar langsung aktif di browser ini & tab lain
+  localStorage.setItem('tka_school_password', newPass);
+  updateSchoolPasswordBadge(newPass);
+
+  // Simpan ke Google Apps Script / Google Sheets
+  const gasUrl = getGasUrl();
+  if (gasUrl) {
+    try {
+      await fetch(gasUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'saveSchoolPassword',
+          password: newPass
+        })
+      });
+    } catch (e) {
+      console.warn('Gagal POST saveSchoolPassword ke GAS, mencoba GET fallback:', e);
+      try {
+        await fetch(`${gasUrl}?action=saveSchoolPassword&password=${encodeURIComponent(newPass)}&_t=${Date.now()}`);
+      } catch (e2) {
+        console.warn('GET saveSchoolPassword fallback gagal:', e2);
+      }
+    }
+  }
+
+  input.value = '';
+  showAdminToast(`Password masuk siswa berhasil diperbarui menjadi: "${newPass}"`);
 }
 
 function saveGasUrl() {
@@ -993,6 +1056,8 @@ window.testGasConnection = testGasConnection;
 window.copyCodeGsContent = copyCodeGsContent;
 window.resetToDefaultData = resetToDefaultData;
 window.loadAdminData = loadAdminData;
+window.handleSaveSchoolPassword = handleSaveSchoolPassword;
+window.updateSchoolPasswordBadge = updateSchoolPasswordBadge;
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {

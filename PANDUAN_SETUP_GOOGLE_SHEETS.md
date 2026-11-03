@@ -23,6 +23,13 @@ Menyimpan data guru pengawas dan siswa SD:
 | USR-05 | Dimas Arya Pratama | 1023 | 6B | dimas | 1023 | siswa |
 | USR-06 | Siti Nurhaliza | 1024 | 6B | siti | 1024 | siswa |
 
+> **💡 Penjelasan Kolom Password di Sheet Users:**
+> - **Pada Baris Guru (`role: guru` / `role: admin`):**  
+>   Password (`gurujuara123`, `admin123`) digunakan untuk **Login Guru ke halaman Admin (`admin.html`)** agar hanya guru/wali kelas yang berwenang yang dapat membuka/menutup ujian dan menyetujui izin siswa.
+> - **Pada Baris Siswa (`role: siswa`):**  
+>   Boleh diabaikan / opsional. Agar tidak membebani anak-anak SD menghafal password akun individu, aplikasi menggunakan **Satu Password Masuk untuk Seluruh Siswa Sekolah** (default: `tka2026`) yang dapat diubah kapan saja oleh Guru di menu Admin.
+
+
 #### Sheet 2: `Tryout`
 Menyimpan jadwal dan link soal TKA:
 | ID | Judul | Mapel | Tanggal | Jam Mulai | Jam Selesai | Link TKA | Petunjuk | Status |

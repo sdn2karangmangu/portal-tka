@@ -50,6 +50,67 @@
   </head>
   <body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col selection:bg-blue-200">
 
+    <!-- ======================================================= -->
+    <!-- 0. GERBANG MASUK SISWA (PASSWORD KUNCI SATU SEKOLAH)   -->
+    <!-- ======================================================= -->
+    <div id="studentLockOverlay" class="fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-md hidden items-center justify-center p-4">
+      <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border-2 border-blue-300 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        
+        <!-- Background Glow -->
+        <div class="absolute -top-12 -right-12 w-36 h-36 bg-blue-100 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -bottom-12 -left-12 w-36 h-36 bg-orange-100 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="text-center relative z-10 mb-6">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-700 via-blue-600 to-indigo-600 text-white flex items-center justify-center text-3xl mx-auto mb-3 shadow-lg border-2 border-white animate-bounce">
+            <i class="fa-solid fa-key"></i>
+          </div>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider mb-1.5">
+            SD NEGERI HARAPAN BANGSA
+          </span>
+          <h2 class="text-2xl font-black text-slate-900 tracking-tight">
+            Kunci Masuk Portal TKA
+          </h2>
+          <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto leading-relaxed">
+            Masukkan <strong>Password Sekolah</strong> yang diberikan oleh bapak/ibu guru untuk membuka akses ujian.
+          </p>
+        </div>
+
+        <div id="portalLockError" class="hidden mb-4 p-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold text-center flex items-center justify-center gap-2">
+          <i class="fa-solid fa-circle-exclamation text-base"></i>
+          <span>Password salah! Tanyakan password hari ini ke guru pengawas.</span>
+        </div>
+
+        <form onsubmit="handleUnlockPortal(event)" class="space-y-4 relative z-10">
+          <div>
+            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
+              Password Masuk Sekolah
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                <i class="fa-solid fa-lock"></i>
+              </span>
+              <input type="password" id="portalPassInput" required placeholder="Ketik password sekolah..." autocomplete="off" class="w-full pl-10 pr-11 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-2xl text-sm font-bold tracking-wider text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-blue-500 transition" />
+              <button type="button" onclick="togglePasswordVisibility('portalPassInput', 'lockEyeIcon')" class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600 cursor-pointer" title="Lihat/Sembunyikan">
+                <i id="lockEyeIcon" class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="w-full py-4 px-6 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-black text-sm rounded-2xl shadow-lg hover:shadow-xl transition transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer border border-blue-400">
+            <span>Buka Portal Ujian Sekarang</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </form>
+
+        <div class="mt-5 pt-4 border-t border-slate-100 text-center relative z-10">
+          <p class="text-[11px] text-slate-400 leading-relaxed">
+            🛡️ Gerbang ini dipasang agar portal ujian sekolah kita tidak dapat dipakai atau diakses oleh pihak luar.
+          </p>
+        </div>
+
+      </div>
+    </div>
+
     <!-- TOP HEADER -->
     <header class="header-glass sticky top-0 z-40 shadow-sm border-b border-slate-200">
       <div class="max-w-6xl mx-auto px-4 py-3 sm:px-6 flex flex-wrap items-center justify-between gap-3">
@@ -87,8 +148,13 @@
           </button>
 
           <!-- Help Info Button -->
-          <button onclick="openHelpModal()" class="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-300 flex items-center justify-center transition shadow-sm" title="Petunjuk & Bantuan">
+          <button onclick="openHelpModal()" class="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-300 flex items-center justify-center transition shadow-sm cursor-pointer" title="Petunjuk & Bantuan">
             <i class="fa-solid fa-circle-question text-lg"></i>
+          </button>
+
+          <!-- Lock Portal Button -->
+          <button onclick="lockStudentPortal()" class="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-slate-600 hover:text-amber-600 hover:border-amber-300 flex items-center justify-center transition shadow-sm cursor-pointer" title="Kunci Kembali Portal">
+            <i class="fa-solid fa-lock text-sm"></i>
           </button>
 
           <!-- Teacher / Admin Page Link -->

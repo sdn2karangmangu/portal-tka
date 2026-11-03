@@ -60,6 +60,8 @@ function doGet(e) {
       responseData = handleRequestPermission(ss, p.id_tryout, p.nis, p.nama_siswa);
     } else if (action === 'toggleTryoutStatus') {
       responseData = handleToggleTryoutStatus(ss, p.id_tryout, p.status);
+    } else if (action === 'saveSchoolPassword') {
+      responseData = handleSaveSchoolPassword(ss, p.password);
     } else {
       responseData = { success: false, message: 'Aksi GET tidak dikenali: ' + action };
     }
@@ -131,6 +133,10 @@ function doPost(e) {
 
       case 'setupSheets':
         responseData = setupSheets();
+        break;
+
+      case 'saveSchoolPassword':
+        responseData = handleSaveSchoolPassword(ss, postBody.password);
         break;
 
       default:
@@ -319,6 +325,7 @@ function getInitialDataForStudent(ss, nis) {
     pengumuman: pengumumanList,
     tryouts: tryoutList,
     siswaList: siswaList,
+    school_password: getSchoolPassword(ss),
     serverTime: new Date().toISOString()
   };
 }
@@ -533,7 +540,8 @@ function getAdminFullData(ss) {
     tryouts: tryouts,
     konfirmasi: konfirmasi,
     pengumuman: pengumuman,
-    siswa: siswa
+    siswa: siswa,
+    school_password: getSchoolPassword(ss)
   };
 }
 
@@ -932,4 +940,51 @@ function formatDateTimeCell(val) {
     return formatDateTime(val);
   }
   return String(val);
+}
+
+/**
+ * Mengambil password masuk siswa satu sekolah dari sheet Users
+ */
+function getSchoolPassword(ss) {
+  try {
+    var usersSheet = getOrCreateSheet(ss, 'Users');
+    var data = usersSheet.getDataRange().getValues();
+    for (var i = 1; i < data.length; i++) {
+      var role = String(data[i][6] || '').toLowerCase().trim();
+      var username = String(data[i][4] || '').toLowerCase().trim();
+      if (role === 'sekolah' || username === 'password_siswa' || username === 'portal_siswa') {
+        var p = String(data[i][5] || '').trim();
+        if (p) return p;
+      }
+    }
+  } catch (e) {}
+  return 'tka2026'; // Default fallback jika belum diatur
+}
+
+/**
+ * Menyimpan password masuk siswa baru ke sheet Users
+ */
+function handleSaveSchoolPassword(ss, newPassword) {
+  if (!newPassword || String(newPassword).trim() === '') {
+    return { success: false, message: 'Password sekolah tidak boleh kosong.' };
+  }
+
+  var usersSheet = getOrCreateSheet(ss, 'Users');
+  var data = usersSheet.getDataRange().getValues();
+  var passStr = String(newPassword).trim();
+
+  for (var i = 1; i < data.length; i++) {
+    var role = String(data[i][6] || '').toLowerCase().trim();
+    var username = String(data[i][4] || '').toLowerCase().trim();
+    if (role === 'sekolah' || username === 'password_siswa' || username === 'portal_siswa') {
+      usersSheet.getRange(i + 1, 6).setValue(passStr);
+      SpreadsheetApp.flush();
+      return { success: true, message: 'Password masuk siswa berhasil diperbarui.', password: passStr };
+    }
+  }
+
+  // Tambah baris baru khusus konfigurasi password sekolah
+  usersSheet.appendRow(['CFG-01', 'Kunci Masuk Siswa', '-', '-', 'password_siswa', passStr, 'sekolah']);
+  SpreadsheetApp.flush();
+  return { success: true, message: 'Password masuk siswa berhasil dibuat dan disimpan.', password: passStr };
 }

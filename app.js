@@ -216,6 +216,10 @@ async function loadPortalData() {
           localStorage.setItem('tka_siswa_list', JSON.stringify(data.siswaList));
         }
 
+        if (data.school_password) {
+          localStorage.setItem('tka_school_password', data.school_password);
+        }
+
         updateDataSourceBadge('Google Sheets (Online)', 'bg-emerald-100 text-emerald-800 border-emerald-300');
         showLoadingIndicator(false);
         return;
@@ -790,9 +794,74 @@ function startDigitalClock() {
   setInterval(update, 1000);
 }
 
+// ==========================================
+// 9. GERBANG KUNCI PORTAL SISWA (SATU SEKOLAH)
+// ==========================================
+
+function checkPortalLock() {
+  const overlay = document.getElementById('studentLockOverlay');
+  if (!overlay) return;
+  const isUnlocked = sessionStorage.getItem('tka_portal_unlocked') === 'true';
+
+  if (!isUnlocked) {
+    overlay.classList.remove('hidden');
+    overlay.classList.add('flex');
+    const input = document.getElementById('portalPassInput');
+    if (input) setTimeout(() => input.focus(), 150);
+  } else {
+    overlay.classList.add('hidden');
+    overlay.classList.remove('flex');
+  }
+}
+
+function handleUnlockPortal(e) {
+  if (e) e.preventDefault();
+  const input = document.getElementById('portalPassInput');
+  const errorEl = document.getElementById('portalLockError');
+  if (!input) return;
+
+  const entered = input.value.trim();
+  const activePassword = (typeof window.getActiveStudentPassword === 'function')
+    ? window.getActiveStudentPassword()
+    : (localStorage.getItem('tka_school_password') || 'tka2026');
+
+  if (entered.toLowerCase() === activePassword.toLowerCase()) {
+    if (errorEl) errorEl.classList.add('hidden');
+    sessionStorage.setItem('tka_portal_unlocked', 'true');
+    checkPortalLock();
+    playChimeSound();
+    showNotification('Kunci berhasil dibuka! Selamat datang di Portal Tryout TKA.', 'success');
+  } else {
+    if (errorEl) {
+      errorEl.classList.remove('hidden');
+    }
+    input.focus();
+    input.select();
+  }
+}
+
+function lockStudentPortal() {
+  sessionStorage.removeItem('tka_portal_unlocked');
+  checkPortalLock();
+  showNotification('Portal telah dikunci kembali.', 'info');
+}
+
+function togglePasswordVisibility(inputId, iconId) {
+  const input = document.getElementById(inputId);
+  const icon = document.getElementById(iconId);
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    if (icon) icon.className = 'fa-solid fa-eye-slash';
+  } else {
+    input.type = 'password';
+    if (icon) icon.className = 'fa-solid fa-eye';
+  }
+}
+
 // Sinkronisasi Real-Time antar Tab Browser
 window.addEventListener('storage', (e) => {
-  if (e.key === 'tka_konfirmasi' || e.key === 'tka_tryouts' || e.key === 'tka_gas_url') {
+  if (e.key === 'tka_konfirmasi' || e.key === 'tka_tryouts' || e.key === 'tka_gas_url' || e.key === 'tka_school_password') {
     loadPortalData();
   }
 });
@@ -809,9 +878,13 @@ window.setTryoutFilter = setTryoutFilter;
 window.openHelpModal = openHelpModal;
 window.closeHelpModal = closeHelpModal;
 window.loadPortalData = loadPortalData;
+window.handleUnlockPortal = handleUnlockPortal;
+window.lockStudentPortal = lockStudentPortal;
+window.togglePasswordVisibility = togglePasswordVisibility;
 
 // Init on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
+  checkPortalLock();
   renderStudentBadge();
   startDigitalClock();
   loadPortalData();
