@@ -284,21 +284,24 @@ function renderStudentBadge() {
     : 'SD';
 
   badge.innerHTML = `
-    <div class="flex items-center gap-3 bg-white/90 border-2 border-blue-200 rounded-2xl p-2 pl-3 shadow-sm hover:border-blue-400 transition cursor-pointer" onclick="openStudentPickerModal()">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center font-bold text-sm shadow">
-        ${initials}
-      </div>
-      <div class="text-left pr-2">
-        <div class="flex items-center gap-2">
-          <span class="text-xs uppercase font-extrabold tracking-wider text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">Kelas ${currentStudent.kelas || '6A'}</span>
-          <span class="text-xs text-slate-400 font-mono">NIS: ${currentStudent.nis}</span>
+    <div class="flex items-center justify-between sm:justify-start gap-2.5 sm:gap-3 bg-white/95 border-2 border-blue-200 hover:border-blue-400 rounded-2xl p-2 sm:p-2 pl-2.5 sm:pl-3 shadow-xs hover:shadow-sm transition cursor-pointer select-none w-full sm:w-auto" onclick="openStudentPickerModal()" title="Klik untuk mengganti siswa / periksa nomor NIS">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-blue-700 to-indigo-600 text-white flex items-center justify-center font-bold text-xs sm:text-sm shadow-xs shrink-0">
+          ${initials}
         </div>
-        <div class="text-sm font-bold text-slate-800 truncate max-w-[150px] sm:max-w-[190px]">
-          ${currentStudent.nama}
+        <div class="text-left min-w-0">
+          <div class="flex items-center gap-1.5">
+            <span class="text-[10px] sm:text-xs uppercase font-extrabold tracking-wider text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded border border-blue-100">Kelas ${currentStudent.kelas || '6A'}</span>
+            <span class="text-[10px] sm:text-xs text-slate-400 font-mono">NIS: ${currentStudent.nis}</span>
+          </div>
+          <div class="text-xs sm:text-sm font-bold text-slate-800 truncate max-w-[150px] xs:max-w-[200px] sm:max-w-[220px]">
+            ${currentStudent.nama}
+          </div>
         </div>
       </div>
-      <div class="text-slate-400 hover:text-blue-600 pr-1">
-        <i class="fa-solid fa-arrows-rotate text-sm"></i>
+      <div class="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-lg flex items-center gap-1 shrink-0 ml-1">
+        <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
+        <span class="text-[11px]">Ganti</span>
       </div>
     </div>
   `;

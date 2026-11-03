@@ -53,8 +53,8 @@
     <!-- ======================================================= -->
     <!-- 0. GERBANG MASUK SISWA (PASSWORD KUNCI SATU SEKOLAH)   -->
     <!-- ======================================================= -->
-    <div id="studentLockOverlay" class="fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-md hidden items-center justify-center p-4">
-      <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border-2 border-blue-300 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div id="studentLockOverlay" class="fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-md hidden items-center justify-center p-3 sm:p-4">
+      <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-8 shadow-2xl border-2 border-blue-300 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200 modal-responsive-card">
         
         <!-- Background Glow -->
         <div class="absolute -top-12 -right-12 w-36 h-36 bg-blue-100 rounded-full blur-2xl pointer-events-none"></div>
@@ -113,91 +113,107 @@
 
     <!-- TOP HEADER -->
     <header class="header-glass sticky top-0 z-40 shadow-sm border-b border-slate-200">
-      <div class="max-w-6xl mx-auto px-4 py-3 sm:px-6 flex flex-wrap items-center justify-between gap-3">
-        
-        <!-- School & Portal Title -->
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-700 via-blue-600 to-indigo-500 text-white flex items-center justify-center text-2xl shadow-md border-2 border-white">
-            <i class="fa-solid fa-graduation-cap"></i>
-          </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="text-[11px] font-extrabold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
-                SD NEGERI HARAPAN BANGSA
-              </span>
-              <span id="dataSourceIndicator" class="hidden sm:inline-flex items-center gap-1 text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Siap
-              </span>
+      <div class="max-w-6xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-4">
+          
+          <!-- Top Row on Mobile: School & Portal Title + Quick Utility Buttons -->
+          <div class="flex items-center justify-between gap-2 min-w-0">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr from-blue-700 via-blue-600 to-indigo-500 text-white flex items-center justify-center text-xl sm:text-2xl shadow-md border-2 border-white shrink-0">
+                <i class="fa-solid fa-graduation-cap"></i>
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded truncate max-w-[170px] sm:max-w-none">
+                    SD NEGERI HARAPAN BANGSA
+                  </span>
+                  <span id="dataSourceIndicator" class="hidden md:inline-flex items-center gap-1 text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Siap
+                  </span>
+                </div>
+                <h1 class="text-base sm:text-xl font-black text-slate-900 tracking-tight truncate">
+                  PORTAL TRYOUT TKA
+                </h1>
+              </div>
             </div>
-            <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-              PORTAL TRYOUT TKA SISWA
-            </h1>
+
+            <!-- Quick Utility Buttons (Mobile Only) -->
+            <div class="flex items-center gap-1.5 sm:hidden shrink-0">
+              <button onclick="loadPortalData(); showNotification('Data tryout diperbarui!', 'info');" class="w-8 h-8 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-blue-600 flex items-center justify-center transition shadow-sm cursor-pointer" title="Segarkan Data">
+                <i class="fa-solid fa-arrows-rotate text-xs"></i>
+              </button>
+              <button onclick="openHelpModal()" class="w-8 h-8 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-blue-600 flex items-center justify-center transition shadow-sm cursor-pointer" title="Bantuan">
+                <i class="fa-solid fa-circle-question text-sm"></i>
+              </button>
+              <button onclick="lockStudentPortal()" class="w-8 h-8 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-amber-600 flex items-center justify-center transition shadow-sm cursor-pointer" title="Kunci Portal">
+                <i class="fa-solid fa-lock text-xs"></i>
+              </button>
+              <a href="./admin.html" class="w-8 h-8 rounded-xl bg-slate-800 text-white flex items-center justify-center transition shadow-sm" title="Halaman Guru">
+                <i class="fa-solid fa-chalkboard-user text-amber-400 text-xs"></i>
+              </a>
+            </div>
           </div>
-        </div>
 
-        <!-- Right: Student Profile & Navigation -->
-        <div class="flex items-center gap-2 sm:gap-3">
-          <!-- Student Badge Container (Interactive Switch) -->
-          <div id="studentBadgeContainer">
-            <!-- Rendered by app.js -->
+          <!-- Bottom Row on Mobile / Right Column on Desktop: Student Profile & Desktop Navigation -->
+          <div class="flex items-center justify-between sm:justify-end gap-2 sm:gap-2.5">
+            <!-- Student Badge Container (Interactive Switch) -->
+            <div id="studentBadgeContainer" class="flex-1 sm:flex-initial">
+              <!-- Rendered by app.js -->
+            </div>
+
+            <!-- Desktop Navigation Buttons -->
+            <div class="hidden sm:flex items-center gap-2">
+              <button onclick="loadPortalData(); showNotification('Data tryout diperbarui!', 'info');" class="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-300 flex items-center justify-center transition shadow-sm cursor-pointer" title="Segarkan Data Sekarang">
+                <i class="fa-solid fa-arrows-rotate text-sm"></i>
+              </button>
+              <button onclick="openHelpModal()" class="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-300 flex items-center justify-center transition shadow-sm cursor-pointer" title="Petunjuk & Bantuan">
+                <i class="fa-solid fa-circle-question text-lg"></i>
+              </button>
+              <button onclick="lockStudentPortal()" class="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-slate-600 hover:text-amber-600 hover:border-amber-300 flex items-center justify-center transition shadow-sm cursor-pointer" title="Kunci Kembali Portal">
+                <i class="fa-solid fa-lock text-sm"></i>
+              </button>
+              <a href="./admin.html" class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition shadow-sm border border-slate-700" title="Portal Khusus Guru Pengawas">
+                <i class="fa-solid fa-chalkboard-user text-amber-400"></i>
+                <span>Halaman Guru</span>
+              </a>
+            </div>
           </div>
 
-          <!-- Refresh Button -->
-          <button onclick="loadPortalData(); showNotification('Data tryout diperbarui!', 'info');" class="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-300 flex items-center justify-center transition shadow-sm cursor-pointer" title="Segarkan Data Sekarang">
-            <i class="fa-solid fa-arrows-rotate text-sm"></i>
-          </button>
-
-          <!-- Help Info Button -->
-          <button onclick="openHelpModal()" class="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-300 flex items-center justify-center transition shadow-sm cursor-pointer" title="Petunjuk & Bantuan">
-            <i class="fa-solid fa-circle-question text-lg"></i>
-          </button>
-
-          <!-- Lock Portal Button -->
-          <button onclick="lockStudentPortal()" class="w-10 h-10 rounded-2xl bg-white border border-slate-200 text-slate-600 hover:text-amber-600 hover:border-amber-300 flex items-center justify-center transition shadow-sm cursor-pointer" title="Kunci Kembali Portal">
-            <i class="fa-solid fa-lock text-sm"></i>
-          </button>
-
-          <!-- Teacher / Admin Page Link -->
-          <a href="./admin.html" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition shadow-sm border border-slate-700" title="Portal Khusus Guru Pengawas">
-            <i class="fa-solid fa-chalkboard-user text-amber-400"></i>
-            <span class="hidden sm:inline">Halaman Guru</span>
-          </a>
         </div>
-
       </div>
     </header>
 
     <!-- MAIN WRAPPER -->
-    <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:px-6 space-y-6">
+    <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5 sm:space-y-6">
 
       <!-- WELCOME HERO & REALTIME CLOCK -->
-      <section class="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white rounded-3xl p-6 sm:p-8 shadow-lg relative overflow-hidden">
+      <section class="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white rounded-3xl p-5 sm:p-8 shadow-lg relative overflow-hidden">
         <!-- Background Decorative Circles -->
         <div class="absolute -right-10 -bottom-10 w-52 h-52 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
         <div class="absolute -left-10 -top-10 w-40 h-40 bg-orange-400/20 rounded-full blur-xl pointer-events-none"></div>
 
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5 sm:gap-6">
           <div class="space-y-2 max-w-2xl">
-            <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-extrabold text-blue-50 border border-white/20">
+            <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[11px] sm:text-xs font-extrabold text-blue-50 border border-white/20">
               <i class="fa-solid fa-sparkles text-amber-300"></i> Asesmen Standar Pendidikan Dasar
             </div>
-            <h2 class="text-2xl sm:text-3xl font-black tracking-tight text-white leading-tight">
+            <h2 class="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-white leading-tight">
               Selamat Datang di Ujian Tryout TKA!
             </h2>
-            <p class="text-blue-100 text-sm sm:text-base leading-relaxed">
+            <p class="text-blue-100 text-xs sm:text-sm md:text-base leading-relaxed">
               Persiapkan dirimu dengan tenang. Tekan tombol <strong>"Minta Izin"</strong> pada kartu tryout yang kamu ikuti, lalu tunggu bapak/ibu guru mengonfirmasi di depan kelas sebelum menekan <strong>"Mulai TKA"</strong>.
             </p>
           </div>
 
           <!-- Digital Clock & Status Badge -->
-          <div class="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center text-center shrink-0 min-w-[200px]">
-            <span class="text-xs font-bold text-blue-200 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+          <div class="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-3.5 sm:p-5 flex flex-col items-center justify-center text-center shrink-0 w-full md:w-auto md:min-w-[200px]">
+            <span class="text-[11px] sm:text-xs font-bold text-blue-200 uppercase tracking-wider mb-1 flex items-center gap-1.5">
               <i class="fa-regular fa-clock"></i> Waktu Sekarang
             </span>
             <div id="digitalClock" class="font-mono font-extrabold text-2xl sm:text-3xl tracking-wider text-amber-300 drop-shadow-sm">
               08:00:00 WIB
             </div>
-            <div class="mt-2 text-[11px] font-semibold text-blue-100 bg-white/10 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+            <div class="mt-1.5 sm:mt-2 text-[10px] sm:text-[11px] font-semibold text-blue-100 bg-white/10 px-2.5 py-0.5 rounded-full flex items-center gap-1">
               <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
               Sistem Aktif & Siap
             </div>
@@ -224,7 +240,7 @@
       <section class="space-y-4">
         
         <!-- Tab Filter & Section Title -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200/90 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 sm:p-3.5 rounded-2xl border border-slate-200/90 shadow-sm">
           <div class="flex items-center gap-2">
             <span class="w-3 h-3 rounded-full bg-orange-500"></span>
             <h3 class="font-black text-slate-900 text-base sm:text-lg">
@@ -235,22 +251,22 @@
             </span>
           </div>
 
-          <!-- Filter Buttons -->
-          <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl self-start sm:self-auto text-xs font-bold">
-            <button id="filter-btn-active" onclick="setTryoutFilter('active')" class="filter-tab-btn px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow transition cursor-pointer">
+          <!-- Filter Buttons (Thumb-friendly on mobile) -->
+          <div class="grid grid-cols-3 sm:flex items-center gap-1 bg-slate-100 p-1 rounded-xl w-full sm:w-auto text-xs font-bold">
+            <button id="filter-btn-active" onclick="setTryoutFilter('active')" class="filter-tab-btn py-2 px-2 sm:px-3 rounded-lg bg-blue-600 text-white shadow text-center cursor-pointer transition text-[11px] sm:text-xs">
               Ujian Hari Ini
             </button>
-            <button id="filter-btn-all" onclick="setTryoutFilter('all')" class="filter-tab-btn px-3 py-1.5 rounded-lg bg-white text-slate-600 hover:bg-slate-50 transition cursor-pointer">
+            <button id="filter-btn-all" onclick="setTryoutFilter('all')" class="filter-tab-btn py-2 px-2 sm:px-3 rounded-lg bg-white text-slate-600 hover:bg-slate-50 text-center cursor-pointer transition text-[11px] sm:text-xs">
               Semua Jadwal
             </button>
-            <button id="filter-btn-history" onclick="setTryoutFilter('history')" class="filter-tab-btn px-3 py-1.5 rounded-lg bg-white text-slate-600 hover:bg-slate-50 transition cursor-pointer">
-              Riwayat Selesai
+            <button id="filter-btn-history" onclick="setTryoutFilter('history')" class="filter-tab-btn py-2 px-2 sm:px-3 rounded-lg bg-white text-slate-600 hover:bg-slate-50 text-center cursor-pointer transition text-[11px] sm:text-xs">
+              Riwayat
             </button>
           </div>
         </div>
 
         <!-- Grid Cards Container -->
-        <div id="tryoutListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div id="tryoutListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
           <!-- Tryout cards rendered dynamically via app.js -->
         </div>
 
@@ -318,14 +334,14 @@
     <!-- ======================================================= -->
     <!-- MODAL 1: KONFIRMASI MULAI TKA (SEBELUM BUKA LINK UJIAN) -->
     <!-- ======================================================= -->
-    <div id="examConfirmModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
-      <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border-2 border-emerald-400 animate-in fade-in zoom-in-95 duration-200">
+    <div id="examConfirmModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-3 sm:p-4">
+      <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border-2 border-emerald-400 animate-in fade-in zoom-in-95 duration-200 modal-responsive-card">
         
-        <div class="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm animate-bounce">
+        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl sm:text-3xl mx-auto mb-3 shadow-sm animate-bounce">
           <i class="fa-solid fa-rocket"></i>
         </div>
 
-        <h3 class="text-xl font-black text-slate-900 text-center mb-1">
+        <h3 class="text-lg sm:text-xl font-black text-slate-900 text-center mb-1">
           Siap Memulai Ujian TKA?
         </h3>
         <p class="text-xs text-slate-500 text-center mb-4">
@@ -333,7 +349,7 @@
         </p>
 
         <!-- Exam Details Box -->
-        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-4 space-y-2 text-xs">
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 sm:p-4 mb-4 space-y-2 text-xs">
           <div class="flex justify-between items-center">
             <span class="text-slate-500 font-medium">Nama Siswa:</span>
             <span id="modalStudentName" class="font-bold text-slate-800">Ahmad Fauzi</span>
@@ -353,7 +369,7 @@
         </div>
 
         <!-- Checklist Persiapan Ceria -->
-        <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3 mb-5 text-xs text-emerald-900 space-y-1">
+        <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3 mb-4 sm:mb-5 text-xs text-emerald-900 space-y-1">
           <div class="font-bold flex items-center gap-1.5">
             <i class="fa-solid fa-circle-check text-emerald-600"></i> Persiapan Terakhir:
           </div>
@@ -365,11 +381,11 @@
         </div>
 
         <!-- Buttons -->
-        <div class="grid grid-cols-2 gap-3">
-          <button onclick="closeExamConfirmModal()" class="py-3 px-4 rounded-xl border border-slate-300 font-bold text-xs text-slate-700 hover:bg-slate-50 transition cursor-pointer">
+        <div class="grid grid-cols-2 gap-2.5 sm:gap-3">
+          <button onclick="closeExamConfirmModal()" class="py-3 px-3 sm:px-4 rounded-xl border border-slate-300 font-bold text-xs text-slate-700 hover:bg-slate-50 transition cursor-pointer">
             Kembali
           </button>
-          <button onclick="executeOpenExamLink()" class="py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5">
+          <button onclick="executeOpenExamLink()" class="py-3 px-3 sm:px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5">
             <span>Buka Soal Ujian</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
           </button>
@@ -381,15 +397,15 @@
     <!-- ======================================================= -->
     <!-- MODAL 2: PILIH / GANTI SISWA (STUDENT PICKER)           -->
     <!-- ======================================================= -->
-    <div id="studentPickerModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
-      <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+    <div id="studentPickerModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-3 sm:p-4">
+      <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 modal-responsive-card">
         
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
               <i class="fa-solid fa-user-group text-sm"></i>
             </div>
-            <h3 class="font-black text-slate-900 text-lg">
+            <h3 class="font-black text-slate-900 text-base sm:text-lg">
               Pilih Identitas Siswa
             </h3>
           </div>
@@ -398,7 +414,7 @@
           </button>
         </div>
 
-        <p class="text-xs text-slate-500 mb-4">
+        <p class="text-xs text-slate-500 mb-3 sm:mb-4">
           Pilih nama dan nomor NIS kamu dari daftar kelas di bawah ini sebelum meminta izin ujian:
         </p>
 
@@ -408,7 +424,7 @@
         </div>
 
         <div class="mt-4 pt-3 border-t border-slate-100 text-center">
-          <button onclick="closeStudentPickerModal()" class="text-xs text-slate-500 hover:text-slate-800 font-semibold">
+          <button onclick="closeStudentPickerModal()" class="text-xs text-slate-500 hover:text-slate-800 font-semibold py-1 px-3">
             Tutup Jendela
           </button>
         </div>
@@ -419,10 +435,10 @@
     <!-- ======================================================= -->
     <!-- MODAL 3: PANDUAN SISWA & BANTUAN                       -->
     <!-- ======================================================= -->
-    <div id="helpModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
-      <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
+    <div id="helpModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-3 sm:p-4">
+      <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-200 modal-responsive-card">
         <div class="flex items-center justify-between mb-3">
-          <h3 class="font-black text-slate-900 text-lg flex items-center gap-2">
+          <h3 class="font-black text-slate-900 text-base sm:text-lg flex items-center gap-2">
             <i class="fa-solid fa-circle-question text-blue-600"></i>
             Petunjuk & Tata Tertib Siswa
           </h3>

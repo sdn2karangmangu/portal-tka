@@ -175,3 +175,39 @@ h1, h2, h3, h4, .font-heading {
   background: linear-gradient(135deg, #eff6ff 0%, #fff7ed 100%);
   border-left: 5px solid #ea580c;
 }
+
+/* Responsive & Mobile Optimizations */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Touch manipulation: removes 300ms tap delay on mobile devices */
+button, a, input, select, textarea {
+  touch-action: manipulation;
+}
+
+/* Modal Responsive Dialog */
+.modal-responsive-card {
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile Table Scrolling */
+.table-responsive-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
+/* Safe area padding for newer mobile viewports */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  footer {
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  }
+}
