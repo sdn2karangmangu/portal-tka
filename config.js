@@ -11,7 +11,7 @@
 
 const CONFIG = {
   // Masukkan URL Web App Google Apps Script Anda (yang berakhiran /exec) di sini:
-  DEFAULT_GAS_URL: "https://script.google.com/macros/s/AKfycbxXv_T6r6LIoIM58fHeNqWFDxK5Psq7fe3pNutizkE3V794MOAs7wXDKRuNoeT354uB9g/exec",
+  DEFAULT_GAS_URL: "https://script.google.com/macros/s/AKfycbxT4r844S9L-7emYa4iRgPNDtxdMZz0j_FRfReiAV3eCgr269fRQP8Q6DYSPUXgHBOHRg/exec",
 
   // Password Masuk Siswa Default (Satu Sekolah):
   // Guru dapat mengubah password ini kapan saja melalui Panel Guru (admin.html)!

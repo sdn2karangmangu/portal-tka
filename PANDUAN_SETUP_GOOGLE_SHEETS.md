@@ -136,7 +136,23 @@ Jika Anda mengubah status di sheet atau menekan tombol persetujuan tetapi di lay
 
 ---
 
-### 5. Cara Hosting Menggunakan GitHub Pages atau Cloudflare Pages
+### 6. Troubleshooting Jam Ujian Tampil Sebagai Format Tanggal Aneh (`1899-12-30T...Z`) atau Kosong
+
+**Penyebab Masalah:**  
+Secara internal, Google Sheets menyimpan sel waktu/jam sebagai objek `Date` dengan tahun dasar `1899-12-30`. Jika dikonversi langsung ke JSON tanpa pemformatan khusus, jam tersebut akan menjadi teks panjang ISO seperti `1899-12-30T05:09:48.000Z` dan input waktu browser akan menolaknya sehingga tampil kosong.
+
+**Solusi yang Telah Diterapkan:**
+1. **Pembersihan Otomatis di Frontend (`admin.js` & `app.js`):**
+   - Format ISO string `1899-12-30` otomatis diekstrak menjadi format jam rapi `HH:mm` (contoh: `08:00 - 09:30 WIB`).
+   - Jika jam kosong di spreadsheet, sistem menampilkan keterangan ramah: **`Waktu Fleksibel`** (bukan error atau teks aneh).
+   - Kotak dialog Edit Tryout di Panel Guru kini otomatis memformat jam sehingga kolom jam tidak akan kosong saat diedit.
+2. **Pembersihan di Backend (`Code.gs`):**
+   - Fungsi `formatTimeCell()` otomatis mengonversi sel waktu Date Google Sheets ke format jam lokal `HH:mm`.
+   - **Tindakan Guru:** Cukup salin isi file `Code.gs` terbaru ke Google Apps Script Anda, lalu buat **New version** melalui menu **Deploy &rarr; Manage deployments &rarr; Edit &rarr; New version &rarr; Deploy**.
+
+---
+
+### 7. Cara Hosting Menggunakan GitHub Pages atau Cloudflare Pages
 
 Aplikasi ini dibuat murni menggunakan teknologi standar web: **HTML5, Tailwind CSS, dan JavaScript Vanilla**, sehingga dapat dihosting gratis di mana pun tanpa server tambahan:
 

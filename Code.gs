@@ -295,8 +295,8 @@ function getInitialDataForStudent(ss, nis) {
       judul: tRow[1],
       mapel: tRow[2],
       tanggal: formatDateCell(tRow[3]),
-      jam_mulai: tRow[4],
-      jam_selesai: tRow[5],
+      jam_mulai: formatTimeCell(tRow[4]),
+      jam_selesai: formatTimeCell(tRow[5]),
       link_tka: safeLink,
       petunjuk: tRow[7],
       status: tryoutStatus,
@@ -478,8 +478,8 @@ function getAdminFullData(ss) {
       judul: r[1],
       mapel: r[2],
       tanggal: formatDateCell(r[3]),
-      jam_mulai: r[4],
-      jam_selesai: r[5],
+      jam_mulai: formatTimeCell(r[4]),
+      jam_selesai: formatTimeCell(r[5]),
       link_tka: r[6],
       petunjuk: r[7],
       status: normalizeTryoutStatus(r[8])
@@ -693,9 +693,9 @@ function handleSaveTryout(ss, tryout) {
         var rowNum = i + 1;
         tryoutSheet.getRange(rowNum, 2).setValue(tryout.judul);
         tryoutSheet.getRange(rowNum, 3).setValue(tryout.mapel || 'Matematika');
-        tryoutSheet.getRange(rowNum, 4).setValue(tryout.tanggal);
-        tryoutSheet.getRange(rowNum, 5).setValue(tryout.jam_mulai);
-        tryoutSheet.getRange(rowNum, 6).setValue(tryout.jam_selesai);
+        tryoutSheet.getRange(rowNum, 4).setValue(formatDateCell(tryout.tanggal));
+        tryoutSheet.getRange(rowNum, 5).setValue(formatTimeCell(tryout.jam_mulai));
+        tryoutSheet.getRange(rowNum, 6).setValue(formatTimeCell(tryout.jam_selesai));
         tryoutSheet.getRange(rowNum, 7).setValue(tryout.link_tka || '');
         tryoutSheet.getRange(rowNum, 8).setValue(tryout.petunjuk || '');
         tryoutSheet.getRange(rowNum, 9).setValue(status);
@@ -710,9 +710,9 @@ function handleSaveTryout(ss, tryout) {
     newId,
     tryout.judul,
     tryout.mapel || 'Matematika',
-    tryout.tanggal || formatDate(new Date()),
-    tryout.jam_mulai || '08:00',
-    tryout.jam_selesai || '09:30',
+    formatDateCell(tryout.tanggal) || formatDate(new Date()),
+    formatTimeCell(tryout.jam_mulai) || '08:00',
+    formatTimeCell(tryout.jam_selesai) || '09:30',
     tryout.link_tka || '',
     tryout.petunjuk || '',
     status
@@ -927,17 +927,84 @@ function formatDateTime(date) {
 }
 
 function formatDateCell(val) {
-  if (!val) return '';
+  if (val === null || val === undefined || val === '') return '';
   if (val instanceof Date) {
-    return formatDate(val);
+    try {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var tz = (ss && ss.getSpreadsheetTimeZone()) || Session.getScriptTimeZone() || 'Asia/Jakarta';
+      return Utilities.formatDate(val, tz, 'yyyy-MM-dd');
+    } catch (e) {
+      return formatDate(val);
+    }
   }
-  return String(val);
+  var str = String(val).trim();
+  if (!str || str === '-' || str === 'null' || str === 'undefined') return '';
+  if (str.indexOf('T') !== -1) {
+    var d = new Date(str);
+    if (!isNaN(d.getTime())) {
+      var y = d.getFullYear();
+      var m = ('0' + (d.getMonth() + 1)).slice(-2);
+      var day = ('0' + d.getDate()).slice(-2);
+      return y + '-' + m + '-' + day;
+    }
+  }
+  return str;
+}
+
+/**
+ * Memformat sel waktu dari Google Sheets menjadi 'HH:mm' yang bersih.
+ * Mengatasi masalah format Date Google Sheets (1899-12-30T...Z) maupun string waktu lainnya.
+ */
+function formatTimeCell(val) {
+  if (val === null || val === undefined || val === '') return '';
+  if (val instanceof Date) {
+    try {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var tz = (ss && ss.getSpreadsheetTimeZone()) || Session.getScriptTimeZone() || 'Asia/Jakarta';
+      return Utilities.formatDate(val, tz, 'HH:mm');
+    } catch (e) {
+      var hh = ('0' + val.getHours()).slice(-2);
+      var mm = ('0' + val.getMinutes()).slice(-2);
+      return hh + ':' + mm;
+    }
+  }
+  var str = String(val).trim();
+  if (!str || str === '-' || str === 'null' || str === 'undefined') return '';
+
+  // Jika string mengandung format ISO / 1899-12-30
+  if (str.indexOf('1899-12-30') !== -1 || str.indexOf('T') !== -1) {
+    var d = new Date(str);
+    if (!isNaN(d.getTime())) {
+      try {
+        var tz = Session.getScriptTimeZone() || 'Asia/Jakarta';
+        return Utilities.formatDate(d, tz, 'HH:mm');
+      } catch (e) {
+        var hh = ('0' + d.getHours()).slice(-2);
+        var mm = ('0' + d.getMinutes()).slice(-2);
+        return hh + ':' + mm;
+      }
+    }
+  }
+
+  // Jika format HH:mm:ss atau HH:mm
+  var match = str.match(/(\d{1,2}):(\d{2})/);
+  if (match) {
+    return ('0' + match[1]).slice(-2) + ':' + match[2];
+  }
+
+  return str;
 }
 
 function formatDateTimeCell(val) {
   if (!val) return '-';
   if (val instanceof Date) {
-    return formatDateTime(val);
+    try {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var tz = (ss && ss.getSpreadsheetTimeZone()) || Session.getScriptTimeZone() || 'Asia/Jakarta';
+      return Utilities.formatDate(val, tz, 'yyyy-MM-dd HH:mm:ss');
+    } catch (e) {
+      return formatDateTime(val);
+    }
   }
   return String(val);
 }

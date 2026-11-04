@@ -137,6 +137,55 @@ function normalizeConfirmationStatus(val) {
   return s;
 }
 
+/**
+ * Memformat string jam agar selalu tampil rapi HH:mm (misal 08:00 atau 10:30).
+ * Mengatasi string ISO bawaan Google Sheets (1899-12-30T...Z) dan jam kosong.
+ */
+function formatTimeString(val, fallback = '') {
+  if (val === null || val === undefined) return fallback;
+  const s = String(val).trim();
+  if (!s || s === '-' || s === 'null' || s === 'undefined') return fallback;
+
+  // Jika nilai adalah format ISO dari Google Sheets seperti "1899-12-30T05:09:48.000Z"
+  if (s.includes('1899-12-30') || s.includes('T')) {
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      return `${hh}:${mm}`;
+    }
+  }
+
+  // Jika berupa waktu seperti "08:00:00" atau "8:00" atau "08:00"
+  const match = s.match(/(\d{1,2}):(\d{2})/);
+  if (match) {
+    return `${match[1].padStart(2, '0')}:${match[2]}`;
+  }
+
+  return s;
+}
+
+/**
+ * Memformat string tanggal YYYY-MM-DD
+ */
+function formatDateString(val, fallback = '-') {
+  if (val === null || val === undefined) return fallback;
+  const s = String(val).trim();
+  if (!s || s === '-' || s === 'null' || s === 'undefined') return fallback;
+
+  if (s.includes('T')) {
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+  }
+
+  return s;
+}
+
 // Inisialisasi LocalStorage jika belum ada data
 function initLocalStorageData() {
   if (!localStorage.getItem('tka_tryouts')) {
@@ -470,14 +519,20 @@ function renderTryoutCards(list) {
               <span class="flex items-center gap-1.5 font-medium">
                 <i class="fa-regular fa-calendar-check text-blue-500"></i> Tanggal:
               </span>
-              <span class="font-bold text-slate-800">${tryout.tanggal}</span>
+              <span class="font-bold text-slate-800">${formatDateString(tryout.tanggal)}</span>
             </div>
             <div class="flex items-center justify-between text-xs text-slate-600">
               <span class="flex items-center gap-1.5 font-medium">
                 <i class="fa-regular fa-clock text-blue-500"></i> Jam Ujian:
               </span>
               <span class="font-bold text-blue-700 bg-blue-100/60 px-2 py-0.5 rounded-md">
-                ${tryout.jam_mulai} - ${tryout.jam_selesai} WIB
+                ${(() => {
+                  const jm = formatTimeString(tryout.jam_mulai);
+                  const js = formatTimeString(tryout.jam_selesai);
+                  if (jm && js) return `${jm} - ${js} WIB`;
+                  if (jm) return `Mulai ${jm} WIB`;
+                  return 'Waktu Fleksibel';
+                })()}
               </span>
             </div>
           </div>
@@ -576,9 +631,13 @@ async function handleStartExam(tryoutId) {
 
   selectedTryoutForModal = target;
 
+  const jm = formatTimeString(target.jam_mulai);
+  const js = formatTimeString(target.jam_selesai);
+  const formattedJam = (jm && js) ? `${jm} - ${js} WIB` : (jm ? `Mulai ${jm} WIB` : 'Waktu Fleksibel');
+
   document.getElementById('modalExamTitle').innerText = target.judul;
   document.getElementById('modalExamMapel').innerText = target.mapel;
-  document.getElementById('modalExamTime').innerText = `${target.jam_mulai} - ${target.jam_selesai} WIB`;
+  document.getElementById('modalExamTime').innerText = formattedJam;
   document.getElementById('modalStudentName').innerText = `${currentStudent.nama} (Kelas ${currentStudent.kelas})`;
 
   const modal = document.getElementById('examConfirmModal');

@@ -48,6 +48,55 @@ function normalizeConfirmationStatus(val) {
   return s;
 }
 
+/**
+ * Memformat string jam agar selalu tampil rapi HH:mm (misal 08:00 atau 10:30).
+ * Menghilangkan format ISO bawaan Google Sheets (1899-12-30T...Z) dan menangani jam kosong.
+ */
+function formatTimeString(val, fallback = '') {
+  if (val === null || val === undefined) return fallback;
+  const s = String(val).trim();
+  if (!s || s === '-' || s === 'null' || s === 'undefined') return fallback;
+
+  // Jika nilai adalah format ISO dari Google Sheets seperti "1899-12-30T05:09:48.000Z"
+  if (s.includes('1899-12-30') || s.includes('T')) {
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      return `${hh}:${mm}`;
+    }
+  }
+
+  // Jika berupa waktu seperti "08:00:00" atau "8:00" atau "08:00"
+  const match = s.match(/(\d{1,2}):(\d{2})/);
+  if (match) {
+    return `${match[1].padStart(2, '0')}:${match[2]}`;
+  }
+
+  return s;
+}
+
+/**
+ * Memformat string tanggal YYYY-MM-DD
+ */
+function formatDateString(val, fallback = '-') {
+  if (val === null || val === undefined) return fallback;
+  const s = String(val).trim();
+  if (!s || s === '-' || s === 'null' || s === 'undefined') return fallback;
+
+  if (s.includes('T')) {
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+  }
+
+  return s;
+}
+
 function getGasUrl() {
   if (typeof window !== 'undefined' && typeof window.getActiveGasUrl === 'function') {
     return window.getActiveGasUrl();
@@ -549,6 +598,16 @@ function renderTryoutsTable(tryouts) {
   container.innerHTML = tryouts.map(t => {
     const isOpen = (t.status === 'DIBUKA' || t.status === 'SEDANG_BERLANGSUNG');
     const isFinished = t.status === 'SELESAI';
+    const jamMulaiFormatted = formatTimeString(t.jam_mulai);
+    const jamSelesaiFormatted = formatTimeString(t.jam_selesai);
+    let jadwalJamHtml = '';
+    if (jamMulaiFormatted && jamSelesaiFormatted) {
+      jadwalJamHtml = `${jamMulaiFormatted} - ${jamSelesaiFormatted} WIB`;
+    } else if (jamMulaiFormatted) {
+      jadwalJamHtml = `Mulai ${jamMulaiFormatted} WIB`;
+    } else {
+      jadwalJamHtml = `<span class="italic text-slate-400">Waktu Fleksibel</span>`;
+    }
 
     return `
       <tr class="hover:bg-slate-50 transition border-b border-slate-100">
@@ -562,8 +621,8 @@ function renderTryoutsTable(tryouts) {
           </span>
         </td>
         <td class="py-4 px-4 text-xs text-slate-600">
-          <div class="font-bold">${t.tanggal}</div>
-          <div class="text-slate-400 font-mono">${t.jam_mulai} - ${t.jam_selesai} WIB</div>
+          <div class="font-bold text-slate-800">${formatDateString(t.tanggal)}</div>
+          <div class="text-slate-500 font-mono mt-0.5">${jadwalJamHtml}</div>
         </td>
         <td class="py-4 px-4 text-xs font-mono">
           <a href="${t.link_tka || '#'}" target="_blank" class="text-blue-600 hover:underline max-w-[180px] truncate block" title="${t.link_tka || ''}">
@@ -650,9 +709,9 @@ function openEditTryoutModal(id) {
   document.getElementById('tryoutFormId').value = target.id;
   document.getElementById('tryoutFormJudul').value = target.judul;
   document.getElementById('tryoutFormMapel').value = target.mapel;
-  document.getElementById('tryoutFormTanggal').value = target.tanggal;
-  document.getElementById('tryoutFormJamMulai').value = target.jam_mulai;
-  document.getElementById('tryoutFormJamSelesai').value = target.jam_selesai;
+  document.getElementById('tryoutFormTanggal').value = formatDateString(target.tanggal) || new Date().toISOString().split('T')[0];
+  document.getElementById('tryoutFormJamMulai').value = formatTimeString(target.jam_mulai, '');
+  document.getElementById('tryoutFormJamSelesai').value = formatTimeString(target.jam_selesai, '');
   document.getElementById('tryoutFormLink').value = target.link_tka || '';
   document.getElementById('tryoutFormPetunjuk').value = target.petunjuk || '';
   document.getElementById('tryoutFormStatus').value = target.status || 'DIBUKA';
@@ -676,9 +735,9 @@ async function handleSaveTryout(e) {
   const id = document.getElementById('tryoutFormId').value.trim();
   const judul = document.getElementById('tryoutFormJudul').value.trim();
   const mapel = document.getElementById('tryoutFormMapel').value;
-  const tanggal = document.getElementById('tryoutFormTanggal').value;
-  const jam_mulai = document.getElementById('tryoutFormJamMulai').value;
-  const jam_selesai = document.getElementById('tryoutFormJamSelesai').value;
+  const tanggal = formatDateString(document.getElementById('tryoutFormTanggal').value);
+  const jam_mulai = formatTimeString(document.getElementById('tryoutFormJamMulai').value, '');
+  const jam_selesai = formatTimeString(document.getElementById('tryoutFormJamSelesai').value, '');
   const link_tka = document.getElementById('tryoutFormLink').value.trim();
   const petunjuk = document.getElementById('tryoutFormPetunjuk').value.trim();
   const status = document.getElementById('tryoutFormStatus').value;
