@@ -429,36 +429,35 @@ function handleAdminLogin(ss, username, password) {
   var usersSheet = getOrCreateSheet(ss, 'Users');
   var data = usersSheet.getDataRange().getValues();
 
+  var cleanInputUser = String(username || '').trim().toLowerCase();
+  var cleanInputPass = String(password || '').trim();
+
   for (var i = 1; i < data.length; i++) {
     var row = data[i];
-    var uRole = (row[6] || '').toLowerCase().trim();
-    var uUsername = String(row[4] || '').trim();
+    var uRole = String(row[6] || '').toLowerCase().trim();
+    var uUsername = String(row[4] || '').trim().toLowerCase();
     var uPassword = String(row[5] || '').trim();
 
-    if ((uRole === 'guru' || uRole === 'admin') && uUsername === String(username).trim() && uPassword === String(password).trim()) {
+    // Verifikasi role guru/admin, username (case-insensitive), dan password
+    if ((uRole === 'guru' || uRole === 'admin') && uUsername === cleanInputUser && uPassword === cleanInputPass) {
       return {
         success: true,
         message: 'Login guru berhasil.',
         user: {
           id: row[0],
-          nama: row[1],
-          role: row[6],
+          nama: row[1] || 'Guru Pengawas',
+          role: row[6] || 'guru',
           username: row[4]
         }
       };
     }
   }
 
-  // Fallback demo
-  if (username === 'guru' && password === 'gurujuara123') {
-    return {
-      success: true,
-      message: 'Login demo guru berhasil.',
-      user: { id: 1, nama: 'Pak Budi Rahardjo, S.Pd.', role: 'guru', username: 'guru' }
-    };
-  }
-
-  return { success: false, message: 'Username atau password guru salah.' };
+  // Jika tidak ditemukan di sheet Users, tolak langsung (TIDAK ADA bypass demo)
+  return { 
+    success: false, 
+    message: 'Username atau password guru salah. Silakan cek data akun pada sheet "Users" di Google Spreadsheet Anda.' 
+  };
 }
 
 function getAdminFullData(ss) {

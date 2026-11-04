@@ -25,7 +25,8 @@ Menyimpan data guru pengawas dan siswa SD:
 
 > **💡 Penjelasan Kolom Password di Sheet Users:**
 > - **Pada Baris Guru (`role: guru` / `role: admin`):**  
->   Password (`gurujuara123`, `admin123`) digunakan untuk **Login Guru ke halaman Admin (`admin.html`)** agar hanya guru/wali kelas yang berwenang yang dapat membuka/menutup ujian dan menyetujui izin siswa.
+>   Username dan Password guru pada baris ini adalah **kredensial resmi yang digunakan untuk Login Guru ke halaman Admin (`admin.html`)**. Anda bebas mengubah username dan password ini kapan saja langsung di Google Spreadsheet!
+>   *Penting:* Jika Anda mengubah username/password guru, pastikan Anda juga menyalin file `Code.gs` terbaru ke Google Apps Script dan membuat **New Version** pada menu Deploy, sehingga backend Google Apps Script membaca data terbaru dan tidak lagi menggunakan akun demo lama (`guru` / `gurujuara123`).
 > - **Pada Baris Siswa (`role: siswa`):**  
 >   Boleh diabaikan / opsional. Agar tidak membebani anak-anak SD menghafal password akun individu, aplikasi menggunakan **Satu Password Masuk untuk Seluruh Siswa Sekolah** (default: `tka2026`) yang dapat diubah kapan saja oleh Guru di menu Admin.
 

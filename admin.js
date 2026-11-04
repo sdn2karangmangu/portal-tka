@@ -8,12 +8,12 @@
 // 1. AUTHENTICATION & SESSION
 // ==========================================
 
-const ADMIN_DEFAULT_USERS = [
-  { username: 'guru', password: 'gurujuara123', nama: 'Pak Budi Rahardjo, S.Pd.', role: 'guru' },
-  { username: 'admin', password: 'admin123', nama: 'Ibu Siti Aminah, S.Pd.', role: 'admin' }
-];
-
+// Bersihkan sisa sesi demo lama agar guru wajib login dengan akun spreadsheet
 let currentUser = JSON.parse(sessionStorage.getItem('tka_admin_user')) || null;
+if (currentUser && (currentUser.is_demo || (currentUser.username === 'guru' && currentUser.id == 1))) {
+  sessionStorage.removeItem('tka_admin_user');
+  currentUser = null;
+}
 let currentTab = 'permissions'; // 'permissions', 'tryouts', 'announcements', 'students', 'sheets'
 let adminPollingInterval = null;
 
@@ -58,17 +58,21 @@ function formatTimeString(val, fallback = '') {
   if (!s || s === '-' || s === 'null' || s === 'undefined') return fallback;
 
   // Jika nilai adalah format ISO dari Google Sheets seperti "1899-12-30T05:09:48.000Z"
-  if (s.includes('1899-12-30') || s.includes('T')) {
+  if (s.includes('1899-12-30') || (s.includes('T') && s.includes('Z'))) {
     const d = new Date(s);
     if (!isNaN(d.getTime())) {
       const hh = String(d.getHours()).padStart(2, '0');
       const mm = String(d.getMinutes()).padStart(2, '0');
       return `${hh}:${mm}`;
     }
+    const isoMatch = s.match(/T(\d{1,2}):(\d{2})/);
+    if (isoMatch) {
+      return `${isoMatch[1].padStart(2, '0')}:${isoMatch[2]}`;
+    }
   }
 
   // Jika berupa waktu seperti "08:00:00" atau "8:00" atau "08:00"
-  const match = s.match(/(\d{1,2}):(\d{2})/);
+  const match = s.match(/(?:^|\s|T)?(\d{1,2}):(\d{2})/);
   if (match) {
     return `${match[1].padStart(2, '0')}:${match[2]}`;
   }
@@ -115,6 +119,34 @@ function checkAuth() {
     if (loginOverlay) loginOverlay.classList.remove('hidden');
     if (adminMain) adminMain.classList.add('hidden');
     if (adminPollingInterval) clearInterval(adminPollingInterval);
+
+    // Perbarui status database pada modal login
+    const gasUrl = getGasUrl();
+    const noticeText = document.getElementById('loginDatabaseNoticeText');
+    const activeUrlText = document.getElementById('loginActiveUrlText');
+    const activeUrlStatus = document.getElementById('loginActiveUrlStatus');
+    const inputBox = document.getElementById('loginUrlInputBox');
+    const toggleText = document.getElementById('loginUrlToggleText');
+
+    if (gasUrl) {
+      if (noticeText) noticeText.innerHTML = '<span class="text-emerald-700 font-bold"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Terhubung ke Google Spreadsheet</span>';
+      if (activeUrlText) {
+        activeUrlText.innerText = gasUrl;
+        activeUrlText.title = gasUrl;
+      }
+      if (activeUrlStatus) {
+        activeUrlStatus.innerHTML = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800"><i class="fa-solid fa-check mr-1"></i>Aktif</span>';
+      }
+      if (toggleText) toggleText.innerText = 'Ubah URL';
+    } else {
+      if (noticeText) noticeText.innerHTML = '<span class="text-amber-800 font-bold"><i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i> Belum Terhubung - Masukkan URL Web App di bawah</span>';
+      if (activeUrlText) activeUrlText.innerText = 'Belum ada URL Apps Script';
+      if (activeUrlStatus) {
+        activeUrlStatus.innerHTML = '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">Perlu URL</span>';
+      }
+      if (inputBox) inputBox.classList.remove('hidden');
+      if (toggleText) toggleText.innerText = 'Tutup Form';
+    }
   } else {
     if (loginOverlay) loginOverlay.classList.add('hidden');
     if (adminMain) adminMain.classList.remove('hidden');
@@ -124,50 +156,132 @@ function checkAuth() {
   }
 }
 
+function toggleLoginUrlBox() {
+  const box = document.getElementById('loginUrlInputBox');
+  const toggleText = document.getElementById('loginUrlToggleText');
+  const input = document.getElementById('loginGasUrlInput');
+  if (!box) return;
+
+  const isHidden = box.classList.contains('hidden');
+  if (isHidden) {
+    box.classList.remove('hidden');
+    if (input) input.value = getGasUrl();
+    if (toggleText) toggleText.innerText = 'Tutup Form';
+  } else {
+    box.classList.add('hidden');
+    if (toggleText) toggleText.innerText = 'Ubah URL';
+  }
+}
+
+function saveGasUrlFromLogin() {
+  const input = document.getElementById('loginGasUrlInput');
+  if (!input) return;
+  const url = input.value.trim();
+  if (!url) {
+    alert('Silakan masukkan URL Web App Google Apps Script Anda (berakhiran /exec)');
+    return;
+  }
+  if (!url.startsWith('https://script.google.com/')) {
+    alert('URL tidak valid! Harus berawalan "https://script.google.com/" dan berakhiran "/exec"');
+    return;
+  }
+
+  localStorage.setItem('tka_gas_url', url);
+  toggleLoginUrlBox();
+  checkAuth();
+  showAdminToast('URL Google Apps Script berhasil disimpan!');
+}
+
 async function handleLogin(e) {
   if (e) e.preventDefault();
   const usernameInput = document.getElementById('adminUsername').value.trim();
   const passwordInput = document.getElementById('adminPassword').value.trim();
   const errorEl = document.getElementById('loginError');
 
-  if (errorEl) errorEl.classList.add('hidden');
+  if (errorEl) {
+    errorEl.classList.add('hidden');
+    errorEl.innerText = '';
+  }
 
   const gasUrl = getGasUrl();
 
-  if (gasUrl) {
-    try {
-      const res = await fetch(gasUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          action: 'adminLogin',
-          username: usernameInput,
-          password: passwordInput
-        })
-      });
-      const data = await res.json();
-      if (data && data.success && data.user) {
-        currentUser = data.user;
-        sessionStorage.setItem('tka_admin_user', JSON.stringify(currentUser));
-        checkAuth();
-        return;
-      }
-    } catch (err) {
-      console.warn('Gagal login via GAS, fallback ke lokal:', err);
-    }
-  }
-
-  // Fallback lokal
-  const found = ADMIN_DEFAULT_USERS.find(u => u.username === usernameInput && u.password === passwordInput);
-  if (found) {
-    currentUser = { username: found.username, nama: found.nama, role: found.role };
-    sessionStorage.setItem('tka_admin_user', JSON.stringify(currentUser));
-    checkAuth();
-  } else {
+  // 1. JIKA BELUM MEMASUKKAN URL GOOGLE APPS SCRIPT:
+  if (!gasUrl) {
     if (errorEl) {
-      errorEl.innerText = 'Username atau Password salah! Cek kembali atau gunakan akun demo.';
+      errorEl.innerHTML = `
+        <div class="font-bold text-amber-800">URL Database Belum Terhubung!</div>
+        <div class="text-[11px] text-amber-700 mt-1">Silakan masukkan URL Web App Google Apps Script Anda pada form di bawah ini agar sistem dapat memvalidasi akun guru dari sheet <b>Users</b>.</div>
+      `;
       errorEl.classList.remove('hidden');
     }
+    const box = document.getElementById('loginUrlInputBox');
+    if (box) box.classList.remove('hidden');
+    return;
+  }
+
+  // 2. VERIFIKASI LANGSUNG KE GOOGLE APPS SCRIPT (Sheet Users)
+  const submitBtn = document.querySelector('#adminLoginForm button[type="submit"]');
+  const originalBtnContent = submitBtn ? submitBtn.innerHTML : '';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Memeriksa data ke Google Sheets...';
+  }
+
+  try {
+    const res = await fetch(gasUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'adminLogin',
+        username: usernameInput,
+        password: passwordInput
+      })
+    });
+    const data = await res.json();
+
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnContent;
+    }
+
+    if (data && data.success && data.user) {
+      // CEK JIKA RESPONSE BERASAL DARI SCRIPT APPS SCRIPT VERSI LAMA YANG MASIH MEMUAT BYPASS DEMO:
+      if (data.message && data.message.toLowerCase().includes('demo')) {
+        if (errorEl) {
+          errorEl.innerHTML = `
+            <div class="font-bold text-red-700">Akun Demo Ditolak!</div>
+            <div class="text-[11px] text-red-600 mt-1">Google Apps Script di Google Drive Anda masih menjalankan versi lama yang memiliki celah akun demo. Silakan salin <b>Code.gs</b> terbaru ke Apps Script dan buat <b>Versi Baru (New version)</b> pada menu Deploy.</div>
+          `;
+          errorEl.classList.remove('hidden');
+        }
+        return;
+      }
+
+      currentUser = data.user;
+      sessionStorage.setItem('tka_admin_user', JSON.stringify(currentUser));
+      checkAuth();
+      return;
+    } else {
+      // Penolakan tegas: credentials tidak cocok dengan data di sheet Users
+      if (errorEl) {
+        errorEl.innerText = (data && data.message) 
+          ? data.message 
+          : 'Username atau Password guru salah! Pastikan data di sheet Users Google Spreadsheet sudah sesuai.';
+        errorEl.classList.remove('hidden');
+      }
+      return;
+    }
+  } catch (err) {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnContent;
+    }
+    console.warn('Gagal menghubungi Google Apps Script:', err);
+    if (errorEl) {
+      errorEl.innerText = 'Gagal menghubungi Google Apps Script: ' + (err.message || 'Periksa koneksi internet atau URL Web App.');
+      errorEl.classList.remove('hidden');
+    }
+    return;
   }
 }
 
@@ -178,8 +292,7 @@ function handleLogout() {
 }
 
 function fillDemoAccount(user, pass) {
-  document.getElementById('adminUsername').value = user;
-  document.getElementById('adminPassword').value = pass;
+  // Demo dinonaktifkan
 }
 
 function updateAdminHeader() {

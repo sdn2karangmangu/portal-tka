@@ -147,17 +147,21 @@ function formatTimeString(val, fallback = '') {
   if (!s || s === '-' || s === 'null' || s === 'undefined') return fallback;
 
   // Jika nilai adalah format ISO dari Google Sheets seperti "1899-12-30T05:09:48.000Z"
-  if (s.includes('1899-12-30') || s.includes('T')) {
+  if (s.includes('1899-12-30') || (s.includes('T') && s.includes('Z'))) {
     const d = new Date(s);
     if (!isNaN(d.getTime())) {
       const hh = String(d.getHours()).padStart(2, '0');
       const mm = String(d.getMinutes()).padStart(2, '0');
       return `${hh}:${mm}`;
     }
+    const isoMatch = s.match(/T(\d{1,2}):(\d{2})/);
+    if (isoMatch) {
+      return `${isoMatch[1].padStart(2, '0')}:${isoMatch[2]}`;
+    }
   }
 
   // Jika berupa waktu seperti "08:00:00" atau "8:00" atau "08:00"
-  const match = s.match(/(\d{1,2}):(\d{2})/);
+  const match = s.match(/(?:^|\s|T)?(\d{1,2}):(\d{2})/);
   if (match) {
     return `${match[1].padStart(2, '0')}:${match[2]}`;
   }
