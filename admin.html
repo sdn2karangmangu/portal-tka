@@ -2,7 +2,7 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Panel Guru & Pengawas - Portal Tryout TKA</title>
     <meta name="description" content="Dashboard guru dan pengawas untuk mengelola jadwal tryout TKA, membuka akses ujian, dan menyetujui konfirmasi izin siswa." />
 
@@ -37,6 +37,15 @@
         }
       }
     </script>
+    <!-- PWA: agar bisa dipasang di HP -->
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <meta name="theme-color" content="#1d4ed8" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Panel Guru TKA" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png" />
     <link rel="stylesheet" href="./style.css">
   </head>
   <body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
@@ -739,6 +748,7 @@
 
     <!-- Script Config & Admin Vanilla JS -->
     <script src="./config.js?v=20261104_3"></script>
+    <script src="./pwa.js"></script>
     <script src="./admin.js?v=20261104_3"></script>
   </body>
 </html>

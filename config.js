@@ -18,9 +18,9 @@ const CONFIG = {
   DEFAULT_STUDENT_PASSWORD: "tka2026",
 
   // Identitas Sekolah
-  NAMA_SEKOLAH: "SD NEGERI HARAPAN BANGSA",
+  NAMA_SEKOLAH: "SD NEGERI 2 KARANGMANGU",
   JUDUL_PORTAL: "PORTAL TRYOUT TKA SISWA",
-  
+
   // Waktu polling otomatis dalam milidetik (misal 3500 = 3.5 detik)
   POLLING_INTERVAL_MS: 3500
 };
