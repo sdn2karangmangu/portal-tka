@@ -1,7 +1,7 @@
 /**
  * PORTAL TRYOUT TKA SISWA - app.js
  * Logika Frontend Siswa SD (JavaScript Vanilla)
- * Didukung Normalisasi Status Fleksibel & Sinkronisasi Cepat (Google Sheets + LocalStorage)
+ * Didukung Normalisasi Status Fleksibel & Sinkronisasi Cepat (Google Sheets)
  */
 
 // ==========================================
@@ -15,91 +15,6 @@ const DEFAULT_SISWA_LIST = [
   { id: 'USR-06', nama: 'Siti Nurhaliza', nis: '1024', kelas: '6B' },
   { id: 'USR-07', nama: 'Reza Rahardian', nis: '1025', kelas: '6A' },
   { id: 'USR-08', nama: 'Putri Cantika', nis: '1026', kelas: '6B' }
-];
-
-const DEFAULT_TRYOUTS = [
-  {
-    id: 'TKA-01',
-    judul: 'Tryout 1 TKA Matematika - Numerasi Dasar',
-    mapel: 'Matematika',
-    tanggal: new Date().toISOString().split('T')[0],
-    jam_mulai: '08:00',
-    jam_selesai: '09:30',
-    link_tka: 'https://forms.gle/sampleMathTKA2026',
-    petunjuk: 'Kerjakan 30 butir soal pilihan ganda. Dilarang menggunakan kalkulator. Siapkan kertas buram untuk berhitung. Berdoalah sebelum mulai!',
-    status: 'DIBUKA'
-  },
-  {
-    id: 'TKA-02',
-    judul: 'Tryout TKA Bahasa Indonesia - Literasi Cerita & Teks Informasi',
-    mapel: 'Bahasa Indonesia',
-    tanggal: new Date().toISOString().split('T')[0],
-    jam_mulai: '10:00',
-    jam_selesai: '11:30',
-    link_tka: 'https://forms.gle/sampleIndoTKA2026',
-    petunjuk: 'Bacalah setiap wacana cerita dan puisi dengan cermat. Perhatikan kalimat utama dan ide pokok paragraf sebelum memilih jawaban.',
-    status: 'DIBUKA'
-  },
-  {
-    id: 'TKA-03',
-    judul: 'Tryout TKA IPAS - Sains Alam & Lingkungan',
-    mapel: 'IPAS',
-    tanggal: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-    jam_mulai: '08:00',
-    jam_selesai: '09:30',
-    link_tka: 'https://forms.gle/sampleIpasTKA2026',
-    petunjuk: 'Materi seputar adaptasi makhluk hidup, magnet, dan siklus air bumi. Ujian akan dibuka besok pagi oleh guru pengawas.',
-    status: 'DITUTUP'
-  },
-  {
-    id: 'TKA-04',
-    judul: 'Simulasi Mandiri TKA PPKn & Karakter Pancasila',
-    mapel: 'PPKn',
-    tanggal: '2026-11-01',
-    jam_mulai: '08:00',
-    jam_selesai: '09:15',
-    link_tka: 'https://forms.gle/samplePpknTKA2026',
-    petunjuk: 'Simulasi telah sukses terlaksana. Terima kasih atas partisipasi seluruh siswa kelas 6.',
-    status: 'SELESAI'
-  }
-];
-
-const DEFAULT_PENGUMUMAN = [
-  {
-    id: 'PGM-01',
-    judul: '🔔 Pelaksanaan Tryout TKA Hari Ini Dimulai!',
-    isi_pengumuman: 'Selamat pagi anak-anak hebat! Tryout TKA Matematika telah dibuka. Pastikan sinyal internet stabil, lalu tekan tombol "MINTA IZIN" agar guru di kelas dapat memberikan akses pengerjaan. Semangat dan jujur selalu!',
-    tanggal: new Date().toISOString().split('T')[0],
-    status: 'AKTIF'
-  },
-  {
-    id: 'PGM-02',
-    judul: '⭐ Tata Tertib & Tips Menjawab',
-    isi_pengumuman: 'Jika tombol MULAI TKA masih berwarna kuning (Menunggu Guru), harap tenang dan tunggu beberapa saat ya, guru sedang menyetujui antrean di meja pengawas.',
-    tanggal: new Date().toISOString().split('T')[0],
-    status: 'AKTIF'
-  }
-];
-
-const DEFAULT_KONFIRMASI = [
-  {
-    id: 'KNF-01',
-    id_tryout: 'TKA-01',
-    nis: '1021',
-    nama_siswa: 'Ahmad Fauzi',
-    status_konfirmasi: 'DISETUJUI',
-    waktu_permintaan: '2026-11-03 07:55:00',
-    waktu_persetujuan: '2026-11-03 07:58:10'
-  },
-  {
-    id: 'KNF-02',
-    id_tryout: 'TKA-01',
-    nis: '1022',
-    nama_siswa: 'Bella Safitri',
-    status_konfirmasi: 'MENUNGGU',
-    waktu_permintaan: '2026-11-03 07:59:15',
-    waktu_persetujuan: '-'
-  }
 ];
 
 // Helper pembersih NIS (menghapus trailing .0 jika dari excel/sheet)
@@ -192,15 +107,6 @@ function formatDateString(val, fallback = '-') {
 
 // Inisialisasi LocalStorage jika belum ada data
 function initLocalStorageData() {
-  if (!localStorage.getItem('tka_tryouts')) {
-    localStorage.setItem('tka_tryouts', JSON.stringify(DEFAULT_TRYOUTS));
-  }
-  if (!localStorage.getItem('tka_pengumuman')) {
-    localStorage.setItem('tka_pengumuman', JSON.stringify(DEFAULT_PENGUMUMAN));
-  }
-  if (!localStorage.getItem('tka_konfirmasi')) {
-    localStorage.setItem('tka_konfirmasi', JSON.stringify(DEFAULT_KONFIRMASI));
-  }
   if (!localStorage.getItem('tka_siswa_list')) {
     localStorage.setItem('tka_siswa_list', JSON.stringify(DEFAULT_SISWA_LIST));
   }
@@ -217,7 +123,11 @@ initLocalStorageData();
 
 let currentStudent = JSON.parse(localStorage.getItem('tka_active_student')) || DEFAULT_SISWA_LIST[0];
 let activeTryoutFilter = 'active'; // 'active', 'all', 'history'
-let pollingInterval = null;
+let pollTimer = null;
+let isLoading = false;
+let loadSeq = 0;
+let lastRenderKey = '';
+window.__tryoutsCache = [];
 let selectedTryoutForModal = null;
 let lastKnownStatuses = {}; // Melacak perubahan status untuk trigger animasi / notifikasi ceria
 
@@ -238,77 +148,60 @@ function getGasUrl() {
 /**
  * Mengambil data terkini (Tryout, Pengumuman, Status Izin Siswa)
  */
-async function loadPortalData() {
+async function loadPortalData(isPoll) {
   const gasUrl = getGasUrl();
-  const currentNis = cleanNis(currentStudent.nis);
-
-  if (gasUrl) {
-    try {
-      showLoadingIndicator(true);
-      // Gunakan timestamp cache-buster agar respons Google Sheet selalu paling segar
-      const url = `${gasUrl}?action=getInitialData&nis=${encodeURIComponent(currentNis)}&_t=${Date.now()}`;
-      const res = await fetch(url);
-      const data = await res.json();
-
-      if (data && data.success) {
-        // Normalisasi status konfirmasi setiap tryout yang diterima dari Google Sheets
-        const normalizedTryouts = (data.tryouts || []).map(t => {
-          if (t.konfirmasi_siswa) {
-            t.konfirmasi_siswa.status_konfirmasi = normalizeConfirmationStatus(t.konfirmasi_siswa.status_konfirmasi);
-          }
-          return t;
-        });
-
-        // Simpan data tryout terbaru dari server untuk dipakai tombol MULAI TKA
-        window.__tryoutsCache = normalizedTryouts;
-
-        // Deteksi apakah status baru saja berubah menjadi DISETUJUI
-        checkAndNotifyApproval(normalizedTryouts);
-
-        renderAnnouncements(data.pengumuman || []);
-        renderTryoutCards(normalizedTryouts);
-
-        if (data.siswaList && data.siswaList.length > 0) {
-          localStorage.setItem('tka_siswa_list', JSON.stringify(data.siswaList));
-        }
-
-        if (data.school_password) {
-          localStorage.setItem('tka_school_password', data.school_password);
-        }
-
-        updateDataSourceBadge('Google Sheets (Online)', 'bg-emerald-100 text-emerald-800 border-emerald-300');
-        showLoadingIndicator(false);
-        return;
-      }
-    } catch (e) {
-      console.warn('Gagal koneksi ke Google Apps Script, beralih ke penyimpanan lokal:', e);
-      updateDataSourceBadge('Mode Simulasi Lokal', 'bg-amber-100 text-amber-800 border-amber-300');
-    }
-  } else {
-    updateDataSourceBadge('Mode Simulasi / Siap Integrasi Sheets', 'bg-blue-100 text-blue-800 border-blue-300');
+  if (!gasUrl) {
+    updateDataSourceBadge('URL backend belum diatur', 'bg-red-100 text-red-800 border-red-300');
+    return;
   }
+  if (isPoll === true && isLoading) return; // polling tidak boleh menumpuk
+  const manual = isPoll !== true;
+  const seq = ++loadSeq;
+  isLoading = true;
+  if (manual) { lastRenderKey = ''; showLoadingIndicator(true); }
 
-  // Fallback: LocalStorage Data
-  const tryouts = JSON.parse(localStorage.getItem('tka_tryouts')) || DEFAULT_TRYOUTS;
-  const pengumuman = JSON.parse(localStorage.getItem('tka_pengumuman')) || DEFAULT_PENGUMUMAN;
-  const konfirmasi = JSON.parse(localStorage.getItem('tka_konfirmasi')) || DEFAULT_KONFIRMASI;
+  const ctrl = new AbortController();
+  const timeout = setTimeout(() => ctrl.abort(), 15000);
+  try {
+    const url = `${gasUrl}?action=getInitialData&nis=${encodeURIComponent(cleanNis(currentStudent.nis))}&_t=${Date.now()}`;
+    const res = await fetch(url, { signal: ctrl.signal });
+    const data = await res.json();
+    if (seq !== loadSeq) return; // sudah ada permintaan yang lebih baru
+    if (!data || !data.success) throw new Error('Respons server tidak valid');
 
-  // Gabungkan status izin siswa saat ini dengan normalisasi
-  const enrichedTryouts = tryouts.map(t => {
-    const studentConf = konfirmasi.find(k => String(k.id_tryout).trim() === String(t.id).trim() && cleanNis(k.nis) === currentNis);
-    const rawStatus = studentConf ? studentConf.status_konfirmasi : 'BELUM_MINTA';
-    const normStatus = normalizeConfirmationStatus(rawStatus);
+    const tryouts = (data.tryouts || []).map(t => {
+      if (t.konfirmasi_siswa) {
+        t.konfirmasi_siswa.status_konfirmasi = normalizeConfirmationStatus(t.konfirmasi_siswa.status_konfirmasi);
+      }
+      return t;
+    });
+    window.__tryoutsCache = tryouts;
+    checkAndNotifyApproval(tryouts);
 
-    return {
-      ...t,
-      konfirmasi_siswa: studentConf ? { ...studentConf, status_konfirmasi: normStatus } : { status_konfirmasi: 'BELUM_MINTA' }
-    };
-  });
+    // Gambar ulang hanya jika data berubah (hemat CPU HP, tombol tidak "berkedip")
+    const key = JSON.stringify([tryouts, data.pengumuman]);
+    if (key !== lastRenderKey) {
+      lastRenderKey = key;
+      renderAnnouncements(data.pengumuman || []);
+      renderTryoutCards(tryouts);
+    }
 
-  checkAndNotifyApproval(enrichedTryouts);
-  renderAnnouncements(pengumuman.filter(p => p.status === 'AKTIF'));
-  renderTryoutCards(enrichedTryouts);
-  showLoadingIndicator(false);
+    if (data.siswaList && data.siswaList.length > 0) {
+      localStorage.setItem('tka_siswa_list', JSON.stringify(data.siswaList));
+    }
+    if (data.school_password) {
+      localStorage.setItem('tka_school_password', data.school_password);
+    }
+    updateDataSourceBadge('Google Sheets (Online)', 'bg-emerald-100 text-emerald-800 border-emerald-300');
+  } catch (e) {
+    console.warn('Gagal memuat data dari Google Apps Script:', e);
+    if (seq === loadSeq) {
+      updateDataSourceBadge('Koneksi bermasalah, mencoba lagi...', 'bg-amber-100 text-amber-800 border-amber-300');
+    }
+  } finally {
+    clearTimeout(timeout);
+    if (seq === loadSeq) { isLoading = false; showLoadingIndicator(false); }
+  }
 }
 
 /**
@@ -575,56 +468,38 @@ async function handleRequestPermission(tryoutId) {
   const gasUrl = getGasUrl();
   const studentNis = cleanNis(currentStudent.nis);
 
-  showNotification('Sedang mengirim permintaan izin ke guru...', 'info');
+  // Tampilkan status "Menunggu" seketika, tanpa menunggu server
+  const t = window.__tryoutsCache.find(x => String(x.id).trim() === String(tryoutId).trim());
+  if (t) {
+    t.konfirmasi_siswa = { ...(t.konfirmasi_siswa || {}), status_konfirmasi: 'MENUNGGU' };
+    lastKnownStatuses[t.id] = 'MENUNGGU';
+    renderTryoutCards(window.__tryoutsCache);
+  }
+  showNotification('Permintaan izin dikirim ke guru pengawas.', 'success');
 
-  if (gasUrl) {
+  let sent = false;
+  try {
+    // text/plain agar bebas dari CORS preflight
+    await fetch(gasUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'requestPermission', id_tryout: tryoutId, nis: studentNis, nama_siswa: currentStudent.nama })
+    });
+    sent = true;
+  } catch (e) {
     try {
-      // Gunakan text/plain agar bebas dari CORS preflight OPTIONS request
-      await fetch(gasUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          action: 'requestPermission',
-          id_tryout: tryoutId,
-          nis: studentNis,
-          nama_siswa: currentStudent.nama
-        })
-      });
-    } catch (e) {
-      console.warn('Gagal POST requestPermission ke GAS, coba GET fallback:', e);
-      try {
-        await fetch(`${gasUrl}?action=requestPermission&id_tryout=${encodeURIComponent(tryoutId)}&nis=${encodeURIComponent(studentNis)}&nama_siswa=${encodeURIComponent(currentStudent.nama)}&_t=${Date.now()}`);
-      } catch (e2) {
-        console.warn('GET fallback juga gagal, gunakan lokal:', e2);
-      }
+      await fetch(`${gasUrl}?action=requestPermission&id_tryout=${encodeURIComponent(tryoutId)}&nis=${encodeURIComponent(studentNis)}&nama_siswa=${encodeURIComponent(currentStudent.nama)}&_t=${Date.now()}`);
+      sent = true;
+    } catch (e2) {
+      console.warn('Gagal mengirim permintaan izin:', e2);
     }
   }
 
-  // Update LocalStorage agar responsif seketika
-  const konfirmasi = JSON.parse(localStorage.getItem('tka_konfirmasi')) || DEFAULT_KONFIRMASI;
-  const existingIndex = konfirmasi.findIndex(k => String(k.id_tryout).trim() === String(tryoutId).trim() && cleanNis(k.nis) === studentNis);
-  const now = new Date();
-  const timeStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-
-  if (existingIndex >= 0) {
-    konfirmasi[existingIndex].status_konfirmasi = 'MENUNGGU';
-    konfirmasi[existingIndex].waktu_permintaan = timeStr;
-  } else {
-    konfirmasi.push({
-      id: 'KNF-' + Math.floor(1000 + Math.random() * 9000),
-      id_tryout: tryoutId,
-      nis: studentNis,
-      nama_siswa: currentStudent.nama,
-      status_konfirmasi: 'MENUNGGU',
-      waktu_permintaan: timeStr,
-      waktu_persetujuan: '-'
-    });
+  if (!sent) {
+    showNotification('Gagal mengirim izin. Periksa sinyal lalu coba lagi.', 'info');
+    loadPortalData();
+    return;
   }
-
-  localStorage.setItem('tka_konfirmasi', JSON.stringify(konfirmasi));
-  showNotification('Permintaan izin telah dikirim ke guru pengawas!', 'success');
-  playChimeSound();
-  loadPortalData();
   startAutoPolling();
 }
 
@@ -632,10 +507,7 @@ async function handleRequestPermission(tryoutId) {
  * Siswa memulai ujian (Membuka modal konfirmasi terlebih dahulu)
  */
 async function handleStartExam(tryoutId) {
-  const tryouts = (window.__tryoutsCache && window.__tryoutsCache.length)
-    ? window.__tryoutsCache
-    : (JSON.parse(localStorage.getItem('tka_tryouts')) || DEFAULT_TRYOUTS);
-  const target = tryouts.find(t => String(t.id).trim() === String(tryoutId).trim());
+  const target = window.__tryoutsCache.find(t => String(t.id).trim() === String(tryoutId).trim());
   if (!target) {
     alert('Data tryout tidak ditemukan. Silakan tekan tombol refresh lalu coba lagi.');
     return;
@@ -671,46 +543,33 @@ function normalizeExamUrl(raw) {
 async function executeOpenExamLink() {
   if (!selectedTryoutForModal) return;
 
-  const btn = document.querySelector('#examConfirmModal button[onclick="executeOpenExamLink()"]');
-  if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
-  const resetBtn = () => { if (btn) { btn.disabled = false; btn.style.opacity = ''; } };
+  // Link sudah ada di data terakhir (server hanya mengirim link jika izin disetujui & tryout dibuka),
+  // jadi langsung buka tanpa menunggu pengecekan ulang ke server.
+  let examUrl = normalizeExamUrl(selectedTryoutForModal.link_tka);
 
-  const gasUrl = getGasUrl();
-  const studentNis = cleanNis(currentStudent.nis);
-  let examUrl = selectedTryoutForModal.link_tka;
-
-  if (gasUrl) {
+  if (!examUrl) {
     try {
-      const res = await fetch(`${gasUrl}?action=checkStudentStatus&nis=${encodeURIComponent(studentNis)}&id_tryout=${encodeURIComponent(selectedTryoutForModal.id)}&_t=${Date.now()}`);
+      const res = await fetch(`${getGasUrl()}?action=checkStudentStatus&nis=${encodeURIComponent(cleanNis(currentStudent.nis))}&id_tryout=${encodeURIComponent(selectedTryoutForModal.id)}&_t=${Date.now()}`);
       const data = await res.json();
       if (data && data.allowed && data.link_tka) {
-        examUrl = data.link_tka;
+        examUrl = normalizeExamUrl(data.link_tka);
       } else {
+        closeExamConfirmModal();
         alert(data && data.allowed
           ? 'Link ujian belum diisi guru di sheet Tryout.'
           : 'Maaf, akses ujian belum disetujui di server atau tryout telah ditutup.');
-        closeExamConfirmModal();
-        resetBtn();
         loadPortalData();
         return;
       }
     } catch (e) {
-      console.warn('Validasi server gagal, menggunakan link lokal:', e);
+      closeExamConfirmModal();
+      alert('Gagal terhubung ke server. Periksa sinyal lalu coba lagi.');
+      return;
     }
   }
 
-  examUrl = normalizeExamUrl(examUrl);
   closeExamConfirmModal();
-  resetBtn();
-
-  if (!examUrl) {
-    alert('Link ujian belum dimasukkan oleh guru.');
-    return;
-  }
-
-  // Pindah di tab yang sama: paling andal di semua HP (tidak kena blokir pop-up).
-  // Siswa bisa kembali ke portal dengan tombol Back.
-  window.location.href = examUrl;
+  window.location.href = examUrl; // tab yang sama: paling andal di semua HP
 }
 
 function closeExamConfirmModal() {
@@ -782,12 +641,20 @@ function closeStudentPickerModal() {
 // ==========================================
 
 function startAutoPolling() {
-  if (pollingInterval) clearInterval(pollingInterval);
-  // Cek setiap 3.5 detik untuk respons cepat saat guru menyetujui
-  pollingInterval = setInterval(() => {
-    loadPortalData();
-  }, 3500);
+  clearTimeout(pollTimer);
+  const tick = async () => {
+    if (!document.hidden) await loadPortalData(true);
+    const waiting = window.__tryoutsCache.some(t => t.konfirmasi_siswa && t.konfirmasi_siswa.status_konfirmasi === 'MENUNGGU');
+    // Cepat (4 dtk) hanya saat menunggu persetujuan guru; selain itu 8 dtk agar server tidak kewalahan
+    pollTimer = setTimeout(tick, waiting ? 4000 : 8000);
+  };
+  pollTimer = setTimeout(tick, 4000);
 }
+
+// Hemat baterai & kuota: berhenti saat tab/aplikasi disembunyikan, segarkan saat kembali
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) loadPortalData(true);
+});
 
 // ==========================================
 // 8. HELPERS & UTILITIES
@@ -806,7 +673,7 @@ function setTryoutFilter(type) {
     activeBtn.classList.add('bg-blue-600', 'text-white', 'shadow');
   }
 
-  loadPortalData();
+  renderTryoutCards(window.__tryoutsCache);
 }
 
 function showNotification(message, type = 'info') {
@@ -952,13 +819,6 @@ function togglePasswordVisibility(inputId, iconId) {
     if (icon) icon.className = 'fa-solid fa-eye';
   }
 }
-
-// Sinkronisasi Real-Time antar Tab Browser
-window.addEventListener('storage', (e) => {
-  if (e.key === 'tka_konfirmasi' || e.key === 'tka_tryouts' || e.key === 'tka_gas_url' || e.key === 'tka_school_password') {
-    loadPortalData();
-  }
-});
 
 // Expose globals for HTML onclicks
 window.handleRequestPermission = handleRequestPermission;
