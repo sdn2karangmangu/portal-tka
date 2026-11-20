@@ -8,15 +8,6 @@
 // 1. DATA STATE & DEFAULT SEED DATA
 // ==========================================
 
-const DEFAULT_SISWA_LIST = [
-  { id: 'USR-03', nama: 'Ahmad Fauzi', nis: '1021', kelas: '6A' },
-  { id: 'USR-04', nama: 'Bella Safitri', nis: '1022', kelas: '6A' },
-  { id: 'USR-05', nama: 'Dimas Arya Pratama', nis: '1023', kelas: '6B' },
-  { id: 'USR-06', nama: 'Siti Nurhaliza', nis: '1024', kelas: '6B' },
-  { id: 'USR-07', nama: 'Reza Rahardian', nis: '1025', kelas: '6A' },
-  { id: 'USR-08', nama: 'Putri Cantika', nis: '1026', kelas: '6B' }
-];
-
 // Helper pembersih NIS (menghapus trailing .0 jika dari excel/sheet)
 function cleanNis(val) {
   if (!val && val !== 0) return '';
@@ -32,15 +23,15 @@ function normalizeConfirmationStatus(val) {
   const s = String(val).trim().toUpperCase();
 
   // Status SIAP DIMULAI / DISETUJUI
-  if (s === 'DISETUJUI' || s === 'SIAP DIMULAI' || s === 'SIAP_DIMULAI' || 
-      s === 'SIAP' || s === 'ACC' || s === 'APPROVED' || s === 'SETUJU' || 
-      s === 'SUDAH DISETUJUI' || s === 'DIIZINKAN') {
+  if (s === 'DISETUJUI' || s === 'SIAP DIMULAI' || s === 'SIAP_DIMULAI' ||
+    s === 'SIAP' || s === 'ACC' || s === 'APPROVED' || s === 'SETUJU' ||
+    s === 'SUDAH DISETUJUI' || s === 'DIIZINKAN') {
     return 'DISETUJUI';
   }
 
   // Status MENUNGGU KONFIRMASI
-  if (s === 'MENUNGGU' || s === 'MENUNGGU KONFIRMASI' || s === 'MENUNGGU_KONFIRMASI' || 
-      s === 'PENDING' || s === 'WAITING' || s === 'BELUM DISETUJUI') {
+  if (s === 'MENUNGGU' || s === 'MENUNGGU KONFIRMASI' || s === 'MENUNGGU_KONFIRMASI' ||
+    s === 'PENDING' || s === 'WAITING' || s === 'BELUM DISETUJUI') {
     return 'MENUNGGU';
   }
 
@@ -105,23 +96,48 @@ function formatDateString(val, fallback = '-') {
   return s;
 }
 
-// Inisialisasi LocalStorage jika belum ada data
-function initLocalStorageData() {
-  if (!localStorage.getItem('tka_siswa_list')) {
-    localStorage.setItem('tka_siswa_list', JSON.stringify(DEFAULT_SISWA_LIST));
-  }
-  if (!localStorage.getItem('tka_active_student')) {
-    localStorage.setItem('tka_active_student', JSON.stringify(DEFAULT_SISWA_LIST[0]));
-  }
-}
-
-initLocalStorageData();
-
 // ==========================================
 // 2. STATE MANAGER
 // ==========================================
 
-let currentStudent = JSON.parse(localStorage.getItem('tka_active_student')) || DEFAULT_SISWA_LIST[0];
+let currentStudent = null; // null = belum memilih nama (wajib memilih dulu)
+try { currentStudent = JSON.parse(localStorage.getItem('tka_active_student')); } catch (e) { currentStudent = null; }
+window.__bolehIkut = true;
+
+function getDeviceId() {
+  let id = localStorage.getItem('tka_device_id');
+  if (!id) {
+    id = Math.random().toString(36).slice(2, 10);
+    localStorage.setItem('tka_device_id', id);
+  }
+  return id;
+}
+
+function getSiswaList() {
+  try { return JSON.parse(localStorage.getItem('tka_siswa_list')) || []; } catch (e) { return []; }
+}
+
+// Catat ke Google Sheets (sheet "Kehadiran") bahwa siswa ini membuka portal dengan namanya
+async function registerStudentLogin() {
+  if (!currentStudent) return;
+  const nis = cleanNis(currentStudent.nis);
+  if (sessionStorage.getItem('tka_login_sent') === nis) return;
+  try {
+    const res = await fetch(`${getGasUrl()}?action=studentLogin&nis=${encodeURIComponent(nis)}&device=${encodeURIComponent(getDeviceId())}&_t=${Date.now()}`);
+    const data = await res.json();
+    if (data && data.success) sessionStorage.setItem('tka_login_sent', nis);
+  } catch (e) {
+    console.warn('Gagal mencatat kehadiran:', e);
+  }
+}
+
+function resetStudent() {
+  currentStudent = null;
+  localStorage.removeItem('tka_active_student');
+  sessionStorage.removeItem('tka_login_sent');
+  renderStudentBadge();
+}
+
 let activeTryoutFilter = 'active'; // 'active', 'all', 'history'
 let pollTimer = null;
 let isLoading = false;
@@ -163,7 +179,7 @@ async function loadPortalData(isPoll) {
   const ctrl = new AbortController();
   const timeout = setTimeout(() => ctrl.abort(), 15000);
   try {
-    const url = `${gasUrl}?action=getInitialData&nis=${encodeURIComponent(cleanNis(currentStudent.nis))}&_t=${Date.now()}`;
+    const url = `${gasUrl}?action=getInitialData&nis=${encodeURIComponent(currentStudent ? cleanNis(currentStudent.nis) : '')}&_t=${Date.now()}`;
     const res = await fetch(url, { signal: ctrl.signal });
     const data = await res.json();
     if (seq !== loadSeq) return; // sudah ada permintaan yang lebih baru
@@ -176,10 +192,11 @@ async function loadPortalData(isPoll) {
       return t;
     });
     window.__tryoutsCache = tryouts;
+    window.__bolehIkut = data.boleh_ikut !== false;
     checkAndNotifyApproval(tryouts);
 
     // Gambar ulang hanya jika data berubah (hemat CPU HP, tombol tidak "berkedip")
-    const key = JSON.stringify([tryouts, data.pengumuman]);
+    const key = JSON.stringify([tryouts, data.pengumuman, window.__bolehIkut]);
     if (key !== lastRenderKey) {
       lastRenderKey = key;
       renderAnnouncements(data.pengumuman || []);
@@ -188,6 +205,17 @@ async function loadPortalData(isPoll) {
 
     if (data.siswaList && data.siswaList.length > 0) {
       localStorage.setItem('tka_siswa_list', JSON.stringify(data.siswaList));
+      // Nama tersimpan tapi tidak ada di daftar sekolah (mis. data lama) -> wajib pilih ulang
+      if (currentStudent && !data.siswaList.some(x => cleanNis(x.nis) === cleanNis(currentStudent.nis))) {
+        resetStudent();
+        renderTryoutCards(tryouts);
+      }
+    }
+    if (currentStudent) {
+      registerStudentLogin();
+    } else {
+      const m = document.getElementById('studentPickerModal');
+      if (m && m.classList.contains('hidden')) openStudentPickerModal();
     }
     if (data.school_password) {
       localStorage.setItem('tka_school_password', data.school_password);
@@ -227,6 +255,14 @@ function checkAndNotifyApproval(tryoutList) {
 function renderStudentBadge() {
   const badge = document.getElementById('studentBadgeContainer');
   if (!badge) return;
+
+  if (!currentStudent) {
+    badge.innerHTML = `
+      <button onclick="openStudentPickerModal()" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm rounded-2xl px-4 py-3 shadow cursor-pointer">
+        <i class="fa-solid fa-user-check"></i> Pilih Namamu
+      </button>`;
+    return;
+  }
 
   const initials = currentStudent.nama
     ? currentStudent.nama.split(' ').map(n => n[0]).slice(0, 2).join('')
@@ -354,6 +390,13 @@ function renderTryoutCards(list) {
           <i class="fa-solid fa-circle-check mr-2"></i> Ujian Telah Ditutup
         </button>
       `;
+    } else if (window.__bolehIkut === false) {
+      badgeHtml = `<span class="badge-status badge-belum-dibuka"><i class="fa-solid fa-ban"></i> Tidak Ikut</span>`;
+      actionBtnHtml = `
+        <div class="w-full py-3.5 px-4 rounded-xl bg-red-50 text-red-700 font-bold text-sm border border-red-200 text-center">
+          <i class="fa-solid fa-ban mr-2"></i> Kamu tidak terdaftar di tryout ini. Tanyakan ke guru.
+        </div>
+      `;
     } else if (!isExamOpen) {
       badgeHtml = `<span class="badge-status badge-belum-dibuka"><i class="fa-solid fa-lock"></i> Belum Dibuka</span>`;
       actionBtnHtml = `
@@ -427,12 +470,12 @@ function renderTryoutCards(list) {
               </span>
               <span class="font-bold text-blue-700 bg-blue-100/60 px-2 py-0.5 rounded-md">
                 ${(() => {
-                  const jm = formatTimeString(tryout.jam_mulai);
-                  const js = formatTimeString(tryout.jam_selesai);
-                  if (jm && js) return `${jm} - ${js} WIB`;
-                  if (jm) return `Mulai ${jm} WIB`;
-                  return 'Waktu Fleksibel';
-                })()}
+        const jm = formatTimeString(tryout.jam_mulai);
+        const js = formatTimeString(tryout.jam_selesai);
+        if (jm && js) return `${jm} - ${js} WIB`;
+        if (jm) return `Mulai ${jm} WIB`;
+        return 'Waktu Fleksibel';
+      })()}
               </span>
             </div>
           </div>
@@ -465,6 +508,7 @@ function renderTryoutCards(list) {
  * Siswa meminta izin kepada guru
  */
 async function handleRequestPermission(tryoutId) {
+  if (!currentStudent) { openStudentPickerModal(); return; }
   const gasUrl = getGasUrl();
   const studentNis = cleanNis(currentStudent.nis);
 
@@ -507,6 +551,7 @@ async function handleRequestPermission(tryoutId) {
  * Siswa memulai ujian (Membuka modal konfirmasi terlebih dahulu)
  */
 async function handleStartExam(tryoutId) {
+  if (!currentStudent) { openStudentPickerModal(); return; }
   const target = window.__tryoutsCache.find(t => String(t.id).trim() === String(tryoutId).trim());
   if (!target) {
     alert('Data tryout tidak ditemukan. Silakan tekan tombol refresh lalu coba lagi.');
@@ -589,10 +634,12 @@ function openStudentPickerModal() {
   const listContainer = document.getElementById('studentPickerList');
   if (!modal || !listContainer) return;
 
-  const siswaList = JSON.parse(localStorage.getItem('tka_siswa_list')) || DEFAULT_SISWA_LIST;
+  const siswaList = getSiswaList();
 
-  listContainer.innerHTML = siswaList.map(s => {
-    const isSelected = cleanNis(s.nis) === cleanNis(currentStudent.nis);
+  if (siswaList.length === 0) {
+    listContainer.innerHTML = '<div class="p-4 text-center text-sm text-slate-500">Daftar siswa belum termuat. Periksa sinyal lalu tekan tombol segarkan.</div>';
+  } else listContainer.innerHTML = siswaList.map(s => {
+    const isSelected = !!currentStudent && cleanNis(s.nis) === cleanNis(currentStudent.nis);
     return `
       <div onclick="selectStudent('${s.nis}')" class="p-3.5 rounded-2xl border-2 ${isSelected ? 'border-blue-600 bg-blue-50/80 shadow-sm' : 'border-slate-200 bg-white hover:border-blue-300'} flex items-center justify-between cursor-pointer transition">
         <div class="flex items-center gap-3">
@@ -616,10 +663,10 @@ function openStudentPickerModal() {
 }
 
 function selectStudent(nis) {
-  const siswaList = JSON.parse(localStorage.getItem('tka_siswa_list')) || DEFAULT_SISWA_LIST;
-  const target = siswaList.find(s => cleanNis(s.nis) === cleanNis(nis));
+  const target = getSiswaList().find(s => cleanNis(s.nis) === cleanNis(nis));
   if (target) {
     currentStudent = target;
+    sessionStorage.removeItem('tka_login_sent'); // nama baru: catat ke sheet lagi
     localStorage.setItem('tka_active_student', JSON.stringify(target));
     renderStudentBadge();
     loadPortalData();
