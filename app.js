@@ -660,11 +660,20 @@ async function handleStartExam(tryoutId) {
 /**
  * Konfirmasi final untuk membuka link ujian di tab baru
  */
+function normalizeExamUrl(raw) {
+  let u = String(raw || '').trim().replace(/\s+/g, '');
+  if (!u) return '';
+  if (/^\/\//.test(u)) u = 'https:' + u;
+  if (!/^https?:\/\//i.test(u)) u = 'https://' + u;   // link tanpa https:// diperbaiki otomatis
+  return u;
+}
+
 async function executeOpenExamLink() {
   if (!selectedTryoutForModal) return;
 
-  // Buka tab SEKARANG (masih dalam gesture klik) agar tidak diblokir pop-up blocker HP
-  const win = window.open('', '_blank');
+  const btn = document.querySelector('#examConfirmModal button[onclick="executeOpenExamLink()"]');
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
+  const resetBtn = () => { if (btn) { btn.disabled = false; btn.style.opacity = ''; } };
 
   const gasUrl = getGasUrl();
   const studentNis = cleanNis(currentStudent.nis);
@@ -677,11 +686,11 @@ async function executeOpenExamLink() {
       if (data && data.allowed && data.link_tka) {
         examUrl = data.link_tka;
       } else {
-        if (win) win.close();
         alert(data && data.allowed
           ? 'Link ujian belum diisi guru di sheet Tryout.'
           : 'Maaf, akses ujian belum disetujui di server atau tryout telah ditutup.');
         closeExamConfirmModal();
+        resetBtn();
         loadPortalData();
         return;
       }
@@ -690,20 +699,18 @@ async function executeOpenExamLink() {
     }
   }
 
+  examUrl = normalizeExamUrl(examUrl);
   closeExamConfirmModal();
+  resetBtn();
 
   if (!examUrl) {
-    if (win) win.close();
     alert('Link ujian belum dimasukkan oleh guru.');
     return;
   }
 
-  if (win) {
-    win.opener = null;
-    win.location.href = examUrl;
-  } else {
-    window.location.href = examUrl; // cadangan: buka di tab yang sama
-  }
+  // Pindah di tab yang sama: paling andal di semua HP (tidak kena blokir pop-up).
+  // Siswa bisa kembali ke portal dengan tombol Back.
+  window.location.href = examUrl;
 }
 
 function closeExamConfirmModal() {
