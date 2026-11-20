@@ -259,6 +259,9 @@ async function loadPortalData() {
           return t;
         });
 
+        // Simpan data tryout terbaru dari server untuk dipakai tombol MULAI TKA
+        window.__tryoutsCache = normalizedTryouts;
+
         // Deteksi apakah status baru saja berubah menjadi DISETUJUI
         checkAndNotifyApproval(normalizedTryouts);
 
@@ -629,9 +632,14 @@ async function handleRequestPermission(tryoutId) {
  * Siswa memulai ujian (Membuka modal konfirmasi terlebih dahulu)
  */
 async function handleStartExam(tryoutId) {
-  const tryouts = JSON.parse(localStorage.getItem('tka_tryouts')) || DEFAULT_TRYOUTS;
+  const tryouts = (window.__tryoutsCache && window.__tryoutsCache.length)
+    ? window.__tryoutsCache
+    : (JSON.parse(localStorage.getItem('tka_tryouts')) || DEFAULT_TRYOUTS);
   const target = tryouts.find(t => String(t.id).trim() === String(tryoutId).trim());
-  if (!target) return;
+  if (!target) {
+    alert('Data tryout tidak ditemukan. Silakan tekan tombol refresh lalu coba lagi.');
+    return;
+  }
 
   selectedTryoutForModal = target;
 
@@ -655,6 +663,9 @@ async function handleStartExam(tryoutId) {
 async function executeOpenExamLink() {
   if (!selectedTryoutForModal) return;
 
+  // Buka tab SEKARANG (masih dalam gesture klik) agar tidak diblokir pop-up blocker HP
+  const win = window.open('', '_blank');
+
   const gasUrl = getGasUrl();
   const studentNis = cleanNis(currentStudent.nis);
   let examUrl = selectedTryoutForModal.link_tka;
@@ -666,7 +677,10 @@ async function executeOpenExamLink() {
       if (data && data.allowed && data.link_tka) {
         examUrl = data.link_tka;
       } else {
-        alert('Maaf, akses ujian belum disetujui di server atau tryout telah ditutup.');
+        if (win) win.close();
+        alert(data && data.allowed
+          ? 'Link ujian belum diisi guru di sheet Tryout.'
+          : 'Maaf, akses ujian belum disetujui di server atau tryout telah ditutup.');
         closeExamConfirmModal();
         loadPortalData();
         return;
@@ -678,10 +692,17 @@ async function executeOpenExamLink() {
 
   closeExamConfirmModal();
 
-  if (examUrl) {
-    window.open(examUrl, '_blank', 'noopener,noreferrer');
-  } else {
+  if (!examUrl) {
+    if (win) win.close();
     alert('Link ujian belum dimasukkan oleh guru.');
+    return;
+  }
+
+  if (win) {
+    win.opener = null;
+    win.location.href = examUrl;
+  } else {
+    window.location.href = examUrl; // cadangan: buka di tab yang sama
   }
 }
 
